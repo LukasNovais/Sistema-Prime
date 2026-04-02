@@ -237,9 +237,16 @@ const App = {
         }
         document.getElementById('inp-km').value = "";
         const row = this.data.cidades[idx];
-        // Captura o KM da planilha de forma robusta
-        const kmBase = typeof row[1] === 'string' ? parseFloat(row[1].replace(/\./g,'').replace(',','.')) : parseFloat(row[1]);
-        this.render(kmBase, row);
+        
+        // CORREÇÃO: Tratamento rigoroso do KM da planilha para garantir o cálculo X2
+        let kmExtraido = row[1];
+        if (typeof kmExtraido === 'string') {
+            kmExtraido = parseFloat(kmExtraido.replace(/\./g, '').replace(',', '.'));
+        } else {
+            kmExtraido = parseFloat(kmExtraido);
+        }
+        
+        this.render(kmExtraido, row);
     },
     handleKm: function(km) {
         if(!km || km <= 0) {
@@ -248,7 +255,11 @@ const App = {
         }
         document.getElementById('sel-cidade').value = "";
         const v = parseFloat(km);
-        const row = this.data.cidades.reduce((p, c) => Math.abs(c[1]-v) < Math.abs(p[1]-v) ? c : p);
+        const row = this.data.cidades.reduce((p, c) => {
+            let kmC = typeof c[1] === 'string' ? parseFloat(c[1].replace(/\./g, '').replace(',', '.')) : parseFloat(c[1]);
+            let kmP = typeof p[1] === 'string' ? parseFloat(p[1].replace(/\./g, '').replace(',', '.')) : parseFloat(p[1]);
+            return Math.abs(kmC - v) < Math.abs(kmP - v) ? c : p;
+        });
         this.render(v, row);
     },
     clearResults: function() {
@@ -262,7 +273,7 @@ const App = {
         if(id === 'mapa') setTimeout(() => this.map.invalidateSize(), 300);
     },
     render: function(kmIda, row) {
-        // CORREÇÃO DEFINITIVA: O Giro total SEMPRE é kmIda * 2
+        // Regra Central: Giro Total = KM Ida X 2
         const kmTotal = kmIda * 2; 
         document.getElementById('box-giro').style.display = 'flex';
         document.getElementById('txt-giro').innerText = kmTotal.toLocaleString('pt-BR');
