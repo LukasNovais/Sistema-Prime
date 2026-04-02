@@ -5,61 +5,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>PRIME APP V4</title>
+    <title>PRIME LOGÍSTICA | CORPORATIVO</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
         :root { 
-            --primary: #1a365d; --accent: #f39c12; --success: #27ae60; 
-            --bg: #ffffff; --card-bg: #f8fafc; --text: #1e293b;
+            --brand-primary: #0f172a; /* Deep Navy */
+            --brand-accent: #3b82f6; /* Modern Blue */
+            --brand-success: #10b981; /* Emerald */
+            --brand-danger: #ef4444; /* Rose */
+            --bg-main: #f1f5f9;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --card-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         
         body { 
-            background: var(--bg); 
-            height: 100vh; 
+            background: var(--bg-main); 
             height: 100dvh; 
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
             display: flex; 
             flex-direction: column; 
             overflow: hidden;
-            color: var(--text);
+            color: var(--text-main);
         }
 
         header {
-            background: var(--primary);
+            background: var(--brand-primary);
             color: white;
-            padding: 15px;
-            text-align: center;
-            font-size: 20px;
-            font-weight: 900;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            padding: 18px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             flex-shrink: 0;
+            z-index: 10;
         }
+
+        header h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+        header .logo-dot { color: var(--brand-accent); }
 
         .app-content { 
             flex: 1; 
             overflow-y: auto; 
-            padding: 10px; 
+            padding: 16px; 
             width: 100%;
             -webkit-overflow-scrolling: touch;
         }
 
-        .view { display: none; width: 100%; max-width: 800px; margin: 0 auto; }
+        .view { display: none; width: 100%; max-width: 600px; margin: 0 auto; animation: fadeIn 0.3s ease; }
         .view.active { display: block; }
 
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* NAVEGAÇÃO CORPORATIVA */
         .nav-bottom { 
             display: flex; 
-            background: var(--primary); 
-            height: 75px; 
+            background: white; 
+            height: 80px; 
             flex-shrink: 0;
             padding-bottom: env(safe-area-inset-bottom);
-            box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
+            border-top: 1px solid #e2e8f0;
         }
         .nav-item { 
             flex: 1; 
@@ -67,118 +79,170 @@
             flex-direction: column; 
             align-items: center; 
             justify-content: center; 
-            color: rgba(255,255,255,0.5);
+            color: var(--text-muted);
             text-decoration: none;
-            font-size: 11px;
-            font-weight: 800;
+            font-size: 10px;
+            font-weight: 700;
+            transition: 0.2s;
         }
-        .nav-item.active { 
-            color: var(--accent);
-            background: rgba(255,255,255,0.05);
-            border-top: 4px solid var(--accent);
-        }
-        .nav-item i { font-size: 24px; margin-bottom: 4px; }
+        .nav-item.active { color: var(--brand-accent); }
+        .nav-item i { font-size: 22px; margin-bottom: 6px; transition: 0.2s; }
+        .nav-item.active i { transform: translateY(-2px); }
 
+        /* INPUTS MODERNOS */
         .app-card { 
-            background: var(--card-bg); 
-            border-radius: 15px; 
-            padding: 15px; 
-            margin-bottom: 15px;
-            border: 1px solid #e2e8f0;
+            background: white; 
+            border-radius: 16px; 
+            padding: 20px; 
+            margin-bottom: 20px;
+            box-shadow: var(--card-shadow);
         }
+        
+        .field-group { margin-bottom: 16px; }
+        label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; display: block; }
         
         input, select { 
             width: 100%; 
-            height: 60px; 
-            padding: 0 15px; 
-            border: 2px solid #cbd5e1; 
+            height: 56px; 
+            padding: 0 16px; 
+            border: 1.5px solid #e2e8f0; 
             border-radius: 12px; 
-            font-size: 18px; 
-            font-weight: 700;
-            margin-bottom: 15px;
+            font-size: 16px; 
+            font-weight: 600;
+            background: #f8fafc;
+            transition: all 0.2s;
+            color: var(--brand-primary);
+        }
+        input:focus { border-color: var(--brand-accent); background: white; outline: none; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+
+        /* CARDS DE FRETE - LUXURY STYLE */
+        .frete-card { 
             background: white;
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #f1f5f9;
         }
 
-        .frete-row { 
-            background: white;
-            padding: 15px;
-            border-radius: 15px;
-            margin-bottom: 10px;
-            border-left: 6px solid var(--primary);
-            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        .veiculo-tag { font-size: 14px; font-weight: 900; color: var(--primary); text-transform: uppercase; }
+        .veiculo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .veiculo-tag { font-size: 13px; font-weight: 800; color: var(--brand-primary); letter-spacing: 0.5px; }
         
-        .valor-gigante { 
-            font-size: clamp(28px, 9vw, 42px); 
+        .valor-main { 
+            font-size: clamp(32px, 8vw, 40px); 
             font-weight: 900; 
-            color: var(--success); 
+            color: var(--brand-primary); 
             display: block;
-            margin: 5px 0;
-            white-space: nowrap;
-        }
-        .valor-litro {
-            font-size: 18px;
-            font-weight: 800;
-            color: #1a365d;
-            background: #eef2f7;
-            padding: 4px 10px;
-            border-radius: 6px;
-            display: inline-block;
+            line-height: 1;
             margin-bottom: 8px;
         }
-        .antt-info { font-size: 12px; color: #64748b; font-weight: 600; }
 
-        .btn-app {
-            background: var(--primary);
-            color: white;
-            width: 100%;
-            height: 65px;
-            border: none;
-            border-radius: 15px;
-            font-size: 18px;
-            font-weight: 900;
-            text-transform: uppercase;
+        .valor-litro-badge {
+            background: #eff6ff;
+            color: var(--brand-accent);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        #map-view { height: 100%; width: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
-        .map-overlay { position: absolute; top: 10px; left: 10px; right: 10px; z-index: 1000; }
+        .antt-status { 
+            margin-top: 12px; 
+            padding-top: 12px; 
+            border-top: 1px dashed #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 600;
+        }
 
-        @media (min-width: 1024px) {
-            .nav-bottom { height: 100vh; width: 100px; flex-direction: column; position: fixed; left: 0; top: 0; }
-            body { padding-left: 100px; }
-            .nav-item { border-top: none; border-left: 5px solid transparent; }
-            .nav-item.active { border-top: none; border-left: 5px solid var(--accent); }
+        .badge-lei { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; }
+        .badge-ok { background: #dcfce7; color: var(--brand-success); }
+        .badge-warn { background: #fee2e2; color: var(--brand-danger); }
+
+        /* BOTÕES CORPORATIVOS */
+        .btn-primary {
+            background: var(--brand-primary);
+            color: white;
+            width: 100%;
+            height: 60px;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-primary:active { transform: scale(0.98); opacity: 0.9; }
+
+        /* MAPA */
+        #map-view { height: 100%; width: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
+        .map-control { position: absolute; top: 20px; left: 16px; right: 16px; z-index: 1000; }
+
+        /* GIRO BOX */
+        .giro-info {
+            background: var(--brand-primary);
+            border-radius: 14px;
+            padding: 16px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: -10px;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
 
-<header>PRIME TRANSPORTES</header>
+<header>
+    <h1>PRIME LOG<span class="logo-dot">.</span></h1>
+    <i class="fa-solid fa-circle-user" style="font-size: 24px; opacity: 0.8"></i>
+</header>
 
 <main class="app-content">
     <section id="view-tabela" class="view active">
         <div class="app-card">
-            <select id="sel-cidade" onchange="App.calcCidade(this.value)">
-                <option>Carregando cidades...</option>
-            </select>
-            <input type="number" id="inp-km" placeholder="KM de ida..." oninput="App.calcKm(this.value)">
-            <div id="box-giro" style="display:none; text-align:center; background:var(--primary); color:white; padding:10px; border-radius:10px;">
-                <span style="font-size:11px; font-weight:800;">GIRO TOTAL</span><br>
-                <b id="txt-giro" style="font-size:24px">0</b> KM
+            <div class="field-group">
+                <label>Destino Comercial</label>
+                <select id="sel-cidade" onchange="App.calcCidade(this.value)">
+                    <option>Carregando cidades...</option>
+                </select>
+            </div>
+            <div class="field-group" style="margin-bottom:0">
+                <label>Quilometragem Ida</label>
+                <input type="number" id="inp-km" placeholder="0" oninput="App.calcKm(this.value)">
             </div>
         </div>
-        <div id="lista-precos"></div>
+
+        <div id="box-giro" class="giro-info" style="display:none">
+            <div>
+                <p style="font-size:10px; opacity:0.6; font-weight:800; text-transform:uppercase">Giro Total</p>
+                <p style="font-size:14px; font-weight:700"><span id="txt-giro">0</span> KM Ida/Volta</p>
+            </div>
+            <i class="fa-solid fa-route" style="font-size:20px; color:var(--brand-accent)"></i>
+        </div>
+
+        <div id="lista-precos">
+            </div>
     </section>
 
     <section id="view-mapa" class="view" style="height:100%; position:relative;">
-        <div class="map-overlay">
-            <div class="app-card">
-                <input type="text" id="map-search" placeholder="Cidade..." onkeypress="App.searchMap(event)" style="margin-bottom:8px; height:50px">
-                <button class="btn-app" style="height:50px" onclick="App.sendZap()">WHATSAPP</button>
+        <div class="map-control">
+            <div class="app-card" style="padding: 12px;">
+                <input type="text" id="map-search" placeholder="Buscar nova rota..." onkeypress="App.searchMap(event)" style="height:50px; margin-bottom:8px">
+                <button class="btn-primary" style="height:50px; background: var(--brand-accent)" onclick="App.sendZap()">
+                    <i class="fa-brands fa-whatsapp"></i> Compartilhar Rota
+                </button>
             </div>
         </div>
         <div id="map-view"></div>
@@ -186,25 +250,33 @@
 
     <section id="view-ordem" class="view">
         <div class="app-card">
-            <input type="text" id="o-mot" placeholder="MOTORISTA">
-            <input type="text" id="o-pla" placeholder="PLACA">
-            <button class="btn-app" onclick="App.gerarOrdem()">GERAR ORDEM</button>
+            <div class="field-group">
+                <label>Motorista Responsável</label>
+                <input type="text" id="o-mot" placeholder="Nome Completo">
+            </div>
+            <div class="field-group">
+                <label>Placa do Veículo</label>
+                <input type="text" id="o-pla" placeholder="ABC0D12">
+            </div>
+            <button class="btn-primary" onclick="App.gerarOrdem()">
+                <i class="fa-solid fa-file-export"></i> Emitir Ordem de Carga
+            </button>
         </div>
     </section>
 </main>
 
 <nav class="nav-bottom">
     <a href="#" class="nav-item active" onclick="App.router('tabela', this)">
-        <i class="fas fa-money-check-alt"></i>
-        <span>Tabela</span>
+        <i class="fa-solid fa-chart-line"></i>
+        <span>TABELA</span>
     </a>
     <a href="#" class="nav-item" onclick="App.router('mapa', this)">
-        <i class="fas fa-map-marked-alt"></i>
-        <span>Mapa</span>
+        <i class="fa-solid fa-map-location-dot"></i>
+        <span>MAPA</span>
     </a>
     <a href="#" class="nav-item" onclick="App.router('ordem', this)">
-        <i class="fas fa-file-signature"></i>
-        <span>Ordem</span>
+        <i class="fa-solid fa-receipt"></i>
+        <span>ORDEM</span>
     </a>
 </nav>
 
@@ -222,7 +294,7 @@ const App = {
     setup: function(d) {
         this.data = d;
         const sel = document.getElementById('sel-cidade');
-        let h = '<option value="">LISTA CIDADES...</option>';
+        let h = '<option value="">SELECIONE O DESTINO...</option>';
         d.cidades.filter(c => c[0]).sort((a,b)=>a[0].localeCompare(b[0])).forEach((c, i) => {
             h += `<option value="${i}">${c[0]} (${c[1]} KM)</option>`;
         });
@@ -246,28 +318,37 @@ const App = {
         this.render(v, row);
     },
     render: function(kmIda, row) {
-        document.getElementById('box-giro').style.display = 'block';
+        document.getElementById('box-giro').style.display = 'flex';
         document.getElementById('txt-giro').innerText = (kmIda * 2);
         const veics = [
-            {n:'Toco', e:2, col:2, cap:10000}, 
-            {n:'Truck', e:3, col:3, cap:15000}, 
-            {n:'Bitruck', e:4, col:4, cap:20000}, 
-            {n:'Carreta', e:5, col:5, cap:30000}
+            {n:'Toco', e:2, col:2, cap:10000}, {n:'Truck', e:3, col:3, cap:15000}, 
+            {n:'Bitruck', e:4, col:4, cap:20000}, {n:'Carreta', e:5, col:5, cap:30000}
         ];
         let h = '';
         veics.forEach(v => {
             const c = this.data.antt[v.e];
             const vMin = (kmIda * c.ccd + c.cc) + (kmIda * c.ccd * 0.92);
             let pP = typeof row[v.col] === 'string' ? parseFloat(row[v.col].replace(/\./g,'').replace(',','.')) : row[v.col];
-            
-            // Cálculo do Valor por Litro
             const vLitro = pP / v.cap;
+            const isOk = pP >= vMin;
 
-            h += `<div class="frete-row">
-                <span class="veiculo-tag">${v.n}</span>
-                <span class="valor-gigante">R$ ${pP.toLocaleString('pt-BR',{minimumFractionDigits:2})}</span>
-                <div class="valor-litro">R$ ${vLitro.toLocaleString('pt-BR',{minimumFractionDigits:4})} /L</div>
-                <div class="antt-info">Mínimo ANTT: R$ ${vMin.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
+            h += `
+            <div class="frete-card">
+                <div class="veiculo-header">
+                    <span class="veiculo-tag">${v.n}</span>
+                    <span class="badge-lei ${isOk?'badge-ok':'badge-warn'}">
+                        ${isOk?'<i class="fa-solid fa-check"></i> ACIMA DA LEI':'<i class="fa-solid fa-triangle-exclamation"></i> ABAIXO DA LEI'}
+                    </span>
+                </div>
+                <span class="valor-main">R$ ${pP.toLocaleString('pt-BR',{minimumFractionDigits:2})}</span>
+                <div class="valor-litro-badge">
+                    <i class="fa-solid fa-gas-pump" style="font-size:12px"></i>
+                    R$ ${vLitro.toLocaleString('pt-BR',{minimumFractionDigits:4})} /L
+                </div>
+                <div class="antt-status">
+                    <span style="color:var(--text-muted)">Piso Mínimo ANTT</span>
+                    <span style="color:var(--brand-primary)">R$ ${vMin.toLocaleString('pt-BR',{minimumFractionDigits:2})}</span>
+                </div>
             </div>`;
         });
         document.getElementById('lista-precos').innerHTML = h;
