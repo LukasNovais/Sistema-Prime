@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>PRIME APP</title>
+    <title>PRIME APP V4</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -18,12 +18,13 @@
             --bg: #ffffff; --card-bg: #f8fafc; --text: #1e293b;
         }
 
-        /* RESET PARA APP */
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         
+        /* Ajuste de altura dinâmica para evitar que o rodapé suma */
         body { 
             background: var(--bg); 
             height: 100vh; 
+            height: 100dvh; /* Altura dinâmica para navegadores modernos */
             font-family: 'Segoe UI', Roboto, sans-serif;
             display: flex; 
             flex-direction: column; 
@@ -31,24 +32,37 @@
             color: var(--text);
         }
 
-        /* HEADER FIXO ESTILO APP */
         header {
             background: var(--primary);
             color: white;
-            padding: 20px 15px;
+            padding: 15px;
             text-align: center;
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 900;
-            letter-spacing: 1px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            flex-shrink: 0;
         }
 
-        /* NAVEGAÇÃO INFERIOR (MAIS FÁCIL PARA O POLEGAR) */
+        /* CONTEÚDO COM ROLAGEM INDEPENDENTE */
+        .app-content { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 10px; 
+            width: 100%;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .view { display: none; width: 100%; max-width: 800px; margin: 0 auto; }
+        .view.active { display: block; }
+
+        /* NAVEGAÇÃO INFERIOR FIXA E SEMPRE VISÍVEL */
         .nav-bottom { 
             display: flex; 
             background: var(--primary); 
-            height: 85px; 
-            padding-bottom: env(safe-area-inset-bottom);
+            height: 75px; 
+            flex-shrink: 0;
+            padding-bottom: env(safe-area-inset-bottom); /* Espaço para "queixo" do iPhone */
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
         }
         .nav-item { 
             flex: 1; 
@@ -58,94 +72,82 @@
             justify-content: center; 
             color: rgba(255,255,255,0.5);
             text-decoration: none;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 800;
-            text-transform: uppercase;
         }
         .nav-item.active { 
             color: var(--accent);
             background: rgba(255,255,255,0.05);
-            border-top: 5px solid var(--accent);
+            border-top: 4px solid var(--accent);
         }
-        .nav-item i { font-size: 28px; margin-bottom: 5px; }
+        .nav-item i { font-size: 24px; margin-bottom: 4px; }
 
-        /* ÁREA DE CONTEÚDO */
-        .app-content { flex: 1; overflow-y: auto; padding: 20px; }
-        .view { display: none; width: 100%; max-width: 800px; margin: 0 auto; }
-        .view.active { display: block; }
-
-        /* CARDS E INPUTS GIGANTES */
+        /* TABELA DE FRETE CORRIGIDA */
         .app-card { 
             background: var(--card-bg); 
-            border-radius: 20px; 
-            padding: 25px; 
-            margin-bottom: 20px;
+            border-radius: 15px; 
+            padding: 15px; 
+            margin-bottom: 15px;
             border: 1px solid #e2e8f0;
         }
         
-        label { font-size: 14px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 10px; display: block; }
-        
         input, select { 
             width: 100%; 
-            height: 75px; /* EXTRA GRANDE */
-            padding: 0 20px; 
-            border: 3px solid #cbd5e1; 
-            border-radius: 15px; 
-            font-size: 22px; /* Fonte para leitura imediata */
+            height: 60px; 
+            padding: 0 15px; 
+            border: 2px solid #cbd5e1; 
+            border-radius: 12px; 
+            font-size: 18px; 
             font-weight: 700;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             background: white;
         }
-        input:focus { border-color: var(--accent); outline: none; }
 
-        /* RESULTADOS DA TABELA (DESTAQUE MÁXIMO) */
+        /* CARD DE PREÇO REDIMENSIONÁVEL */
         .frete-row { 
             background: white;
-            padding: 25px;
-            border-radius: 18px;
-            margin-bottom: 15px;
-            border-left: 8px solid var(--primary);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            border-left: 6px solid var(--primary);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            width: 100%;
+            display: flex;
+            flex-direction: column;
         }
-        .veiculo-tag { font-size: 18px; font-weight: 900; color: var(--primary); text-transform: uppercase; }
+        .veiculo-tag { font-size: 14px; font-weight: 900; color: var(--primary); text-transform: uppercase; }
+        
         .valor-gigante { 
-            font-size: 45px; /* TAMANHO APP SÊNIOR */
+            font-size: clamp(28px, 9vw, 42px); /* Fonte Fluida para caber no celular */
             font-weight: 900; 
             color: var(--success); 
             display: block;
-            margin: 10px 0;
+            margin: 5px 0;
+            white-space: nowrap;
         }
-        .antt-info { font-size: 14px; color: #64748b; font-weight: 600; }
+        .antt-info { font-size: 12px; color: #64748b; font-weight: 600; }
 
-        /* BOTÕES DE AÇÃO APP */
         .btn-app {
             background: var(--primary);
             color: white;
             width: 100%;
-            height: 80px;
+            height: 65px;
             border: none;
-            border-radius: 20px;
-            font-size: 20px;
+            border-radius: 15px;
+            font-size: 18px;
             font-weight: 900;
             text-transform: uppercase;
-            box-shadow: 0 8px 20px rgba(26, 54, 93, 0.3);
-            margin-top: 10px;
         }
 
-        /* MAPA FULLSCREEN */
+        /* MAPA */
         #map-view { height: 100%; width: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
-        .map-overlay { position: absolute; top: 20px; left: 20px; right: 20px; z-index: 1000; }
+        .map-overlay { position: absolute; top: 10px; left: 10px; right: 10px; z-index: 1000; }
 
-        /* RESPONSIVIDADE PARA NOTEBOOK */
         @media (min-width: 1024px) {
-            header { display: none; }
-            .nav-bottom { 
-                position: fixed; left: 0; top: 0; height: 100vh; width: 120px; 
-                flex-direction: column; padding-top: 50px;
-            }
-            body { padding-left: 120px; }
-            .view { max-width: 1200px; padding: 40px; }
-            .valor-gigante { font-size: 60px; }
+            .nav-bottom { height: 100vh; width: 100px; flex-direction: column; position: fixed; left: 0; top: 0; }
+            body { padding-left: 100px; }
+            .nav-item { border-top: none; border-left: 5px solid transparent; }
+            .nav-item.active { border-top: none; border-left: 5px solid var(--accent); }
         }
     </style>
 </head>
@@ -156,47 +158,33 @@
 <main class="app-content">
     <section id="view-tabela" class="view active">
         <div class="app-card">
-            <label>Onde é a entrega?</label>
             <select id="sel-cidade" onchange="App.calcCidade(this.value)">
-                <option>Buscando cidades...</option>
+                <option>Carregando cidades...</option>
             </select>
-            
-            <label>Ou digite a KM de ida</label>
-            <input type="number" id="inp-km" placeholder="Ex: 250" oninput="App.calcKm(this.value)">
-            
-            <div id="box-giro" style="display:none; text-align:center; background:var(--primary); color:white; padding:15px; border-radius:12px;">
-                <span style="font-size:14px; font-weight:700;">GIRO TOTAL (IDA+VOLTA)</span><br>
-                <b id="txt-giro" style="font-size:32px">0</b> <b>KM</b>
+            <input type="number" id="inp-km" placeholder="KM de ida..." oninput="App.calcKm(this.value)">
+            <div id="box-giro" style="display:none; text-align:center; background:var(--primary); color:white; padding:10px; border-radius:10px;">
+                <span style="font-size:11px; font-weight:800;">GIRO TOTAL</span><br>
+                <b id="txt-giro" style="font-size:24px">0</b> KM
             </div>
         </div>
-
-        <div id="lista-precos">
-            </div>
+        <div id="lista-precos"></div>
     </section>
 
-    <section id="view-mapa" class="view" style="height:100%; padding:0">
+    <section id="view-mapa" class="view" style="height:100%; position:relative;">
         <div class="map-overlay">
-            <div class="app-card" style="margin-bottom:0; box-shadow: 0 10px 25px rgba(0,0,0,0.2)">
-                <input type="text" id="map-search" placeholder="Cidade destino..." onkeypress="App.searchMap(event)" style="margin-bottom:10px">
-                <button class="btn-app" style="height:60px" onclick="App.sendZap()">ENVIAR RELATÓRIO</button>
+            <div class="app-card">
+                <input type="text" id="map-search" placeholder="Cidade..." onkeypress="App.searchMap(event)" style="margin-bottom:8px; height:50px">
+                <button class="btn-app" style="height:50px" onclick="App.sendZap()">WHATSAPP</button>
             </div>
-            <div id="sugestoes" style="background:white; border-radius:15px; margin-top:5px"></div>
         </div>
         <div id="map-view"></div>
     </section>
 
     <section id="view-ordem" class="view">
         <div class="app-card">
-            <label>Motorista</label>
-            <input type="text" id="o-mot" placeholder="NOME COMPLETO">
-            <label>Placa do Caminhão</label>
-            <input type="text" id="o-pla" placeholder="ABC-1234">
-            
-            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:10px">
-                <select id="o-tipo"><option>GASOLINA</option><option>ETANOL</option><option>DIESEL</option></select>
-                <input type="number" id="o-vol" placeholder="LTS">
-            </div>
-            <button class="btn-app" onclick="App.gerarOrdem()">GERAR ORDEM AGORA</button>
+            <input type="text" id="o-mot" placeholder="MOTORISTA">
+            <input type="text" id="o-pla" placeholder="PLACA">
+            <button class="btn-app" onclick="App.gerarOrdem()">GERAR ORDEM</button>
         </div>
     </section>
 </main>
@@ -204,95 +192,74 @@
 <nav class="nav-bottom">
     <a href="#" class="nav-item active" onclick="App.router('tabela', this)">
         <i class="fas fa-money-check-alt"></i>
-        TABELA
+        <span>Tabela</span>
     </a>
     <a href="#" class="nav-item" onclick="App.router('mapa', this)">
         <i class="fas fa-map-marked-alt"></i>
-        MAPA
+        <span>Mapa</span>
     </a>
     <a href="#" class="nav-item" onclick="App.router('ordem', this)">
         <i class="fas fa-file-signature"></i>
-        ORDEM
+        <span>Ordem</span>
     </a>
 </nav>
 
 <script>
 const App = {
     data: null,
-    map: null,
-    pontos: [],
-
     init: function() {
-        // Carrega dados da Planilha
         const script = document.createElement('script');
         script.src = 'https://script.google.com/macros/s/AKfycbx8wr0xEwFVEvBRaEkcHu_2TFwH_KN8zFcoD4x2023PzqqucGFUhz2rxfOXfdIe7B_w/exec?callback=App.setup';
         document.body.appendChild(script);
 
-        // Inicia Mapa
         this.map = L.map('map-view', {zoomControl: false}).setView([-16.68, -49.25], 5);
         L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}').addTo(this.map);
     },
-
     setup: function(d) {
         this.data = d;
         const sel = document.getElementById('sel-cidade');
-        let h = '<option value="">LISTA DE CIDADES...</option>';
+        let h = '<option value="">LISTA CIDADES...</option>';
         d.cidades.filter(c => c[0]).sort((a,b)=>a[0].localeCompare(b[0])).forEach((c, i) => {
             h += `<option value="${i}">${c[0]} (${c[1]} KM)</option>`;
         });
         sel.innerHTML = h;
     },
-
-    router: function(viewId, el) {
+    router: function(id, el) {
         document.querySelectorAll('.view, .nav-item').forEach(x => x.classList.remove('active'));
-        document.getElementById('view-' + viewId).classList.add('active');
+        document.getElementById('view-' + id).classList.add('active');
         el.classList.add('active');
-        if(viewId === 'mapa') setTimeout(() => this.map.invalidateSize(), 200);
+        if(id === 'mapa') setTimeout(() => this.map.invalidateSize(), 300);
     },
-
     calcCidade: function(idx) {
         if(!idx) return;
         const row = this.data.cidades[idx];
-        this.renderPrecos(parseFloat(row[1]), row);
+        this.render(parseFloat(row[1]), row);
     },
-
     calcKm: function(km) {
         if(!km) return;
         const v = parseFloat(km);
         const row = this.data.cidades.reduce((p, c) => Math.abs(c[1]-v) < Math.abs(p[1]-v) ? c : p);
-        this.renderPrecos(v, row);
+        this.render(v, row);
     },
-
-    renderPrecos: function(kmIda, row) {
+    render: function(kmIda, row) {
         document.getElementById('box-giro').style.display = 'block';
         document.getElementById('txt-giro').innerText = (kmIda * 2);
-        
-        const veics = [
-            {n:'Toco', e:2, col:2}, {n:'Truck', e:3, col:3}, 
-            {n:'Bitruck', e:4, col:4}, {n:'Carreta', e:5, col:5}
-        ];
-
+        const veics = [{n:'Toco', e:2, col:2}, {n:'Truck', e:3, col:3}, {n:'Bitruck', e:4, col:4}, {n:'Carreta', e:5, col:5}];
         let h = '';
         veics.forEach(v => {
             const c = this.data.antt[v.e];
             const vMin = (kmIda * c.ccd + c.cc) + (kmIda * c.ccd * 0.92);
             let pP = typeof row[v.col] === 'string' ? parseFloat(row[v.col].replace(/\./g,'').replace(',','.')) : row[v.col];
-            
-            h += `
-            <div class="frete-row">
+            h += `<div class="frete-row">
                 <span class="veiculo-tag">${v.n}</span>
                 <span class="valor-gigante">R$ ${pP.toLocaleString('pt-BR',{minimumFractionDigits:2})}</span>
-                <div class="antt-info">Mínimo da Lei: R$ ${vMin.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
-                ${pP < vMin ? '<div style="color:red; font-weight:900; font-size:12px; margin-top:5px">⚠️ ABAIXO DO PISO ANTT</div>' : ''}
+                <div class="antt-info">Mínimo ANTT: R$ ${vMin.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
             </div>`;
         });
         document.getElementById('lista-precos').innerHTML = h;
     }
 };
-
-// Iniciar App
 window.onload = () => App.init();
 </script>
-
 </body>
 </html>
