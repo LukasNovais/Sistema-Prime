@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Master Logística Pro - Prime</title>
+    <title>Sistema Prime Logística v3.0</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
@@ -14,80 +14,93 @@
 
     <style>
         :root { 
-            --primary: #1a365d; --blue: #004a99; --google-blue: #1a73e8; 
-            --success: #2e7d32; --orange: #f39c12; --bg: #f0f2f5; 
+            --primary: #1a365d; --blue: #004a99; --success: #2e7d32; 
+            --orange: #f39c12; --bg: #f1f5f9; --danger: #d32f2f;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
         body { background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Navegação Responsiva */
+        /* NAVEGAÇÃO MOBILE-FIRST */
         .nav-tabs { 
             display: flex; background: var(--primary); overflow-x: auto; 
-            white-space: nowrap; z-index: 2000; box-shadow: 0 2px 10px rgba(0,0,0,0.2); 
+            white-space: nowrap; z-index: 2000; border-bottom: 3px solid var(--orange);
         }
         .tab-btn { 
-            flex: 1; padding: 15px; border: none; background: none; 
-            color: #fff; cursor: pointer; font-size: 13px; font-weight: 700;
+            flex: 1; min-width: 120px; padding: 15px; border: none; background: none; 
+            color: rgba(255,255,255,0.7); cursor: pointer; font-size: 12px; font-weight: 800;
+            text-transform: uppercase; transition: 0.2s;
         }
-        .tab-btn.active { background: var(--bg); color: var(--primary); border-top: 4px solid var(--orange); }
+        .tab-btn.active { background: var(--bg); color: var(--primary); }
 
-        /* Conteúdo Principal */
+        /* GRID CONDICIONAL: CELULAR VS NOTEBOOK */
         .tab-content { display: none; flex: 1; overflow-y: auto; padding: 10px; }
         .tab-content.active { display: flex; flex-direction: column; }
-
-        /* Grid Condicional: Celular (Coluna) / Notebook (Lado a Lado) */
-        .app-grid { display: flex; flex-direction: column; gap: 15px; }
+        
+        .app-grid { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 1400px; margin: auto; }
+        
         @media (min-width: 992px) {
-            .app-grid { flex-direction: row; align-items: flex-start; }
+            .app-grid { flex-direction: row; align-items: flex-start; padding: 20px; }
             .sidebar { width: 400px; position: sticky; top: 0; }
             .main-panel { flex: 1; }
         }
 
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px; }
-        input, select { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; font-size: 16px; margin-bottom: 10px; outline: none; }
-        label { font-size: 11px; font-weight: 800; color: #666; text-transform: uppercase; display: block; margin-bottom: 5px; }
-
-        /* Estilos específicos da Tabela */
-        .item-tab { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }
-        .price-final { font-size: 20px; font-weight: 800; }
-        .alerta { color: #d93025; font-size: 10px; font-weight: 900; }
-
-        /* Estilos específicos do Mapa */
-        #map-calc { height: 400px; width: 100%; border-radius: 12px; z-index: 1; }
-        @media (min-width: 992px) { #map-calc { height: 600px; } }
-        .dre-box { background: #1a1a1a; color: white; padding: 15px; border-radius: 12px; font-size: 13px; }
-        .dre-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #333; }
+        /* COMPONENTES DE INTERFACE */
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); margin-bottom: 15px; }
+        label { font-size: 11px; font-weight: 900; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 6px; }
+        input, select { width: 100%; height: 50px; padding: 0 15px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 16px; outline: none; margin-bottom: 10px; }
         
-        /* Estilos da Ordem */
-        .prod-item { border-bottom: 2px solid #000; padding: 10px; text-align: center; }
-        .ord-view { background: white; padding: 20px; border: 2px solid #000; width: 600px; margin: auto; }
+        /* ESTILOS DA TABELA - DESTAQUE SOLICITADO */
+        .item-tab { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; border-bottom: 2px solid #f1f5f9; }
+        .veiculo-info b { font-size: 16px; color: var(--primary); text-transform: uppercase; }
+        .veiculo-info small { color: #64748b; font-weight: 600; display: block; margin-top: 2px; }
+        
+        /* VALORES EM DESTAQUE */
+        .price-final { 
+            font-size: 32px; /* Fonte Gigante */
+            font-weight: 900; 
+            color: var(--success); 
+            display: block;
+            line-height: 1;
+        }
+        .alerta-lei { 
+            background: #fef2f2; color: var(--danger); font-size: 10px; font-weight: 900; 
+            padding: 2px 8px; border-radius: 4px; border: 1px solid #fee2e2; display: inline-block;
+        }
+
+        /* MAPA */
+        #map-container { height: 400px; width: 100%; border-radius: 12px; overflow: hidden; z-index: 1; }
+        @media (min-width: 992px) { #map-container { height: 600px; } }
+
+        /* ORDEM PREVIEW */
+        .ord-print { background: white; width: 600px; padding: 30px; border: 3px solid #000; margin: auto; }
+        .prod-row { border-bottom: 2px solid #000; padding: 10px; text-align: center; }
     </style>
 </head>
 <body>
 
 <nav class="nav-tabs">
-    <button class="tab-btn active" onclick="Router.switch('tabela')">TABELA FRETE</button>
-    <button class="tab-btn" onclick="Router.switch('mapa')">MAPA & CUSTOS</button>
-    <button class="tab-btn" onclick="Router.switch('ordem')">ORDEM CARGA</button>
+    <button class="tab-btn active" onclick="Router.switch('tabela')"><i class="fas fa-table"></i> Tabela</button>
+    <button class="tab-btn" onclick="Router.switch('mapa')"><i class="fas fa-map-marked-alt"></i> Mapa</button>
+    <button class="tab-btn" onclick="Router.switch('ordem')"><i class="fas fa-file-invoice"></i> Ordem</button>
 </nav>
 
 <section id="tab-tabela" class="tab-content active">
     <div class="app-grid">
         <div class="sidebar">
             <div class="card">
-                <label>Cidade Destino</label>
-                <select id="tab-selCidade" onchange="TabApp.porCidade(this.value)"><option>Carregando...</option></select>
+                <label>Cidade de Destino</label>
+                <select id="tab-selCidade" onchange="TabApp.porCidade(this.value)"><option>Carregando cidades...</option></select>
                 <label>KM Ida (Manual)</label>
-                <input type="number" id="tab-kmMan" oninput="TabApp.porKm(this.value)">
-                <div id="tab-displayKM" style="display:none; background:var(--blue); color:white; padding:10px; border-radius:8px; text-align:center;">
-                    Giro Total: <span id="tab-kmTotal" style="font-weight:900">0</span> KM
+                <input type="number" id="tab-kmMan" placeholder="Apenas KM de ida..." oninput="TabApp.porKm(this.value)">
+                <div id="tab-kmBox" style="display:none; background:var(--primary); color:white; padding:12px; border-radius:10px; text-align:center;">
+                    Giro Total (Ida+Volta): <span id="tab-kmTotal" style="font-weight:900; font-size:20px;">0</span> KM
                 </div>
             </div>
         </div>
         <div class="main-panel">
             <div class="card" id="tab-lista">
-                <p style="text-align:center; color:#999">Selecione um destino para calcular.</p>
+                <p style="text-align:center; color:#94a3b8; padding:40px;">Selecione uma cidade ou digite o KM para ver os valores destacados.</p>
             </div>
         </div>
     </div>
@@ -97,25 +110,14 @@
     <div class="app-grid">
         <div class="sidebar">
             <div class="card">
-                <label>Buscar Cidade</label>
+                <label>Adicionar Ponto</label>
                 <input type="text" id="map-busca" placeholder="Cidade + Enter" onkeypress="MapApp.handleEnter(event)">
-                <div id="map-sugestoes" style="background:white; border:1px solid #ddd; display:none"></div>
-                
-                <div style="display:flex; gap:5px; margin-bottom:10px">
-                    <button id="m-ida" class="tab-btn" style="background:var(--google-blue); border-radius:8px" onclick="MapApp.setTipo('ida')">SÓ IDA</button>
-                    <button id="m-volta" class="tab-btn" style="background:#666; border-radius:8px" onclick="MapApp.setTipo('idavolta')">IDA/VOLTA</button>
-                </div>
-
-                <div class="dre-box" id="map-dre" style="display:none">
-                    <div class="dre-row"><span>Frete Bruto:</span><span id="m-bruto" style="color:#00e676">R$ 0,00</span></div>
-                    <div class="dre-row"><span>Diesel:</span><span id="m-diesel" style="color:#ff8a80">- R$ 0,00</span></div>
-                    <div class="dre-row"><span>LUCRO:</span><span id="m-lucro" style="font-size:18px; font-weight:900">R$ 0,00</span></div>
-                    <button class="tab-btn" style="background:#25d366; width:100%; margin-top:10px" onclick="MapApp.zap()">ENVIAR WHATSAPP</button>
-                </div>
+                <div id="map-sugestoes" style="border:1px solid #ddd; display:none; max-height:200px; overflow-y:auto"></div>
+                <button class="tab-btn" style="background:var(--success); width:100%; border-radius:10px; margin-top:10px" onclick="MapApp.gerarRelatorio()">Gerar Relatório</button>
             </div>
         </div>
         <div class="main-panel">
-            <div id="map-calc"></div>
+            <div id="map-container"></div>
         </div>
     </div>
 </section>
@@ -125,29 +127,32 @@
         <div class="sidebar">
             <div class="card">
                 <label>Motorista</label>
-                <input type="text" id="ord-motorista" oninput="OrdApp.sync()">
+                <input type="text" id="ord-mot" oninput="OrdApp.sync()">
                 <label>Placa</label>
-                <input type="text" id="ord-placa" oninput="OrdApp.sync()">
-                <label>Adicionar Produto</label>
-                <select id="ord-tipo"><option value="GASOLINA C">GASOLINA</option><option value="ETANOL">ETANOL</option></select>
-                <input type="number" id="ord-vol" placeholder="Volume">
-                <button class="tab-btn" style="background:var(--success); width:100%" onclick="OrdApp.addProd()">ADICIONAR PRODUTO</button>
-                <button class="tab-btn" style="background:var(--primary); width:100%; margin-top:10px" onclick="OrdApp.gerar()">GERAR ORDEM</button>
+                <input type="text" id="ord-pla" oninput="OrdApp.sync()">
+                <label>Produto</label>
+                <div style="display:flex; gap:5px">
+                    <select id="ord-tipo" style="flex:2"><option>GASOLINA C</option><option>ETANOL</option><option>DIESEL S10</option></select>
+                    <input type="number" id="ord-vol" placeholder="Vol" style="flex:1">
+                </div>
+                <button class="tab-btn" style="background:var(--blue); width:100%; border-radius:10px" onclick="OrdApp.addProd()">Adicionar</button>
+                <button class="tab-btn" style="background:var(--primary); width:100%; border-radius:10px; margin-top:10px" onclick="OrdApp.exportar()">Gerar Imagem</button>
             </div>
         </div>
         <div class="main-panel" style="overflow-x:auto">
-            <div id="ord-print" class="ord-view">
-                <h2 style="text-align:center">PRIME TRANSPORTADORA</h2>
-                <hr style="border:1px solid #000; margin:10px 0">
-                <p><b>MOTORISTA:</b> <span id="v-mot">---</span></p>
-                <p><b>PLACA:</b> <span id="v-pla">---</span></p>
-                <div id="v-prods" style="margin-top:15px; border:2px solid #000"></div>
+            <div id="ord-canvas" class="ord-print">
+                <h1 style="text-align:center; font-weight:900">PRIME TRANSPORTADORA</h1>
+                <hr style="border:2px solid #000; margin:15px 0">
+                <p style="font-size:20px"><b>MOTORISTA:</b> <span id="v-mot">---</span></p>
+                <p style="font-size:20px"><b>PLACA:</b> <span id="v-pla">---</span></p>
+                <div id="v-prods" style="margin-top:20px; border:3px solid #000"></div>
             </div>
         </div>
     </div>
 </section>
 
 <script>
+// --- ROTEADOR ---
 const Router = {
     switch: (id) => {
         document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
@@ -157,7 +162,7 @@ const Router = {
     }
 };
 
-// --- TABELA ---
+// --- TABELA DE FRETE (ALTERAÇÕES SOLICITADAS AQUI) ---
 const TabApp = {
     api: 'https://script.google.com/macros/s/AKfycbx8wr0xEwFVEvBRaEkcHu_2TFwH_KN8zFcoD4x2023PzqqucGFUhz2rxfOXfdIe7B_w/exec',
     base: null,
@@ -169,32 +174,46 @@ const TabApp = {
     setup: function(d) {
         this.base = d;
         const sel = document.getElementById('tab-selCidade');
-        let h = '<option value="">Selecione...</option>';
+        let h = '<option value="">Selecione o Destino...</option>';
+        
+        // ALTERAÇÃO: Inclusão do KM na lista suspensa
         d.cidades.filter(c => c[0]).sort((a,b)=>a[0].localeCompare(b[0])).forEach((c, i) => {
-            h += `<option value="${i}">${c[0]}</option>`;
+            h += `<option value="${i}">${c[0]} (${c[1]} KM)</option>`;
         });
         sel.innerHTML = h;
     },
     porCidade: function(i) { if(i) this.calc(this.base.cidades[i][1], this.base.cidades[i]); },
     porKm: function(v) {
         if(!v) return;
-        const row = this.base.cidades.reduce((p, c) => Math.abs(c[1]-v) < Math.abs(p[1]-v) ? c : p);
-        this.calc(parseFloat(v), row);
+        const km = parseFloat(v);
+        const row = this.base.cidades.reduce((p, c) => Math.abs(c[1]-km) < Math.abs(p[1]-km) ? c : p);
+        this.calc(km, row);
     },
     calc: function(kmIda, row) {
-        document.getElementById('tab-displayKM').style.display = 'block';
+        document.getElementById('tab-kmBox').style.display = 'block';
         document.getElementById('tab-kmTotal').innerText = (kmIda * 2);
-        const veiculos = [{n:'Toco', e:2, col:2, vol:10000}, {n:'Truck', e:3, col:3, vol:15000}, {n:'Bitruck', e:4, col:4, vol:20000}, {n:'Carreta', e:5, col:5, vol:30000}];
+        
+        const veiculos = [
+            {n:'Toco', e:2, col:2}, {n:'Truck', e:3, col:3}, 
+            {n:'Bitruck', e:4, col:4}, {n:'Carreta', e:5, col:5}
+        ];
+        
         let h = '';
         veiculos.forEach(v => {
             const c = this.base.antt[v.e];
-            const vA = (kmIda * c.ccd + c.cc) + (kmIda * c.ccd * 0.92);
+            const vMin = (kmIda * c.ccd + c.cc) + (kmIda * c.ccd * 0.92);
             let pP = typeof row[v.col] === 'string' ? parseFloat(row[v.col].replace(/\./g,'').replace(',','.')) : row[v.col];
-            h += `<div class="item-tab">
-                <div><b>${v.n}</b><br><small>ANTT: R$ ${vA.toLocaleString('pt-BR')}</small></div>
+            
+            // ALTERAÇÃO: Destaque visual dos valores
+            h += `
+            <div class="item-tab">
+                <div class="veiculo-info">
+                    <b>${v.n}</b>
+                    <small>Mínimo ANTT: R$ ${vMin.toLocaleString('pt-BR', {minimumFractionDigits:2})}</small>
+                </div>
                 <div style="text-align:right">
-                    <span class="price-final">R$ ${pP.toLocaleString('pt-BR')}</span><br>
-                    ${pP < vA ? '<span class="alerta">Abaixo da Lei</span>' : ''}
+                    <span class="price-final">R$ ${pP.toLocaleString('pt-BR', {minimumFractionDigits:2})}</span>
+                    ${pP < vMin ? '<span class="alerta-lei">ABAIXO DO PISO</span>' : ''}
                 </div>
             </div>`;
         });
@@ -204,22 +223,17 @@ const TabApp = {
 
 // --- MAPA ---
 const MapApp = {
-    map: null, pontos: [], tipo: 'ida', routing: null,
+    map: null, pontos: [], routing: null,
     init: function() {
-        this.map = L.map('map-calc').setView([-16.68, -49.25], 5);
+        this.map = L.map('map-container').setView([-16.68, -49.25], 5);
         L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}').addTo(this.map);
-    },
-    setTipo: function(t) {
-        this.tipo = t;
-        document.getElementById('m-ida').style.background = t === 'ida' ? 'var(--google-blue)' : '#666';
-        document.getElementById('m-volta').style.background = t === 'idavolta' ? 'var(--google-blue)' : '#666';
     },
     handleEnter: function(e) {
         if(e.key !== 'Enter') return;
         fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${e.target.value}&limit=3`)
         .then(r => r.json()).then(d => {
             let h = '';
-            d.forEach(i => h += `<div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer" onclick="MapApp.add(${i.lat},${i.lon},'${i.display_name.split(',')[0]}')">${i.display_name}</div>`);
+            d.forEach(i => h += `<div style="padding:15px; border-bottom:1px solid #eee; cursor:pointer" onclick="MapApp.add(${i.lat},${i.lon},'${i.display_name.split(',')[0]}')">${i.display_name}</div>`);
             document.getElementById('map-sugestoes').innerHTML = h;
             document.getElementById('map-sugestoes').style.display = 'block';
         });
@@ -228,30 +242,16 @@ const MapApp = {
         this.pontos.push({ latlng: L.latLng(lat, lon), nome });
         document.getElementById('map-sugestoes').style.display = 'none';
         document.getElementById('map-busca').value = '';
-        this.calcRota();
+        this.desenhar();
     },
-    calcRota: function() {
+    desenhar: function() {
         if(this.pontos.length < 2) return;
         if(this.routing) this.map.removeControl(this.routing);
-        const pts = this.tipo === 'idavolta' ? [...this.pontos, this.pontos[0]] : this.pontos;
         this.routing = L.Routing.control({
-            waypoints: pts.map(p => p.latlng),
+            waypoints: this.pontos.map(p => p.latlng),
             router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
-            lineOptions: { styles: [{ color: 'var(--google-blue)', weight: 6 }] }
-        }).on('routesfound', (e) => {
-            const km = e.routes[0].summary.totalDistance / 1000;
-            const bruto = km * 4.80; // Valor KM padrão
-            const diesel = (km / 3.5) * 5.40;
-            const lucro = bruto - diesel;
-            document.getElementById('map-dre').style.display = 'block';
-            document.getElementById('m-bruto').innerText = `R$ ${bruto.toLocaleString('pt-BR')}`;
-            document.getElementById('m-diesel').innerText = `- R$ ${diesel.toLocaleString('pt-BR')}`;
-            document.getElementById('m-lucro').innerText = `R$ ${lucro.toLocaleString('pt-BR')}`;
+            lineOptions: { styles: [{ color: 'var(--orange)', weight: 6 }] }
         }).addTo(this.map);
-    },
-    zap: function() {
-        const msg = `*RELATÓRIO PRIME*%0ALucro: ${document.getElementById('m-lucro').innerText}`;
-        window.open(`https://api.whatsapp.com/send?text=${msg}`);
     }
 };
 
@@ -259,8 +259,8 @@ const MapApp = {
 const OrdApp = {
     prods: [],
     sync: function() {
-        document.getElementById('v-mot').innerText = document.getElementById('ord-motorista').value.toUpperCase();
-        document.getElementById('v-pla').innerText = document.getElementById('ord-placa').value.toUpperCase();
+        document.getElementById('v-mot').innerText = document.getElementById('ord-mot').value.toUpperCase();
+        document.getElementById('v-pla').innerText = document.getElementById('ord-pla').value.toUpperCase();
     },
     addProd: function() {
         const t = document.getElementById('ord-tipo').value;
@@ -268,14 +268,14 @@ const OrdApp = {
         if(!v) return;
         this.prods.push({t, v});
         let h = '';
-        this.prods.forEach(p => h += `<div class="prod-item"><b>${p.t}</b><br><span style="font-size:24px">${p.v}</span></div>`);
+        this.prods.forEach(p => h += `<div class="prod-row"><b>${p.t}</b><br><span style="font-size:30px; font-weight:900; color:var(--danger)">${p.v} L</span></div>`);
         document.getElementById('v-prods').innerHTML = h;
     },
-    gerar: function() {
-        html2canvas(document.getElementById('ord-print')).then(c => {
+    exportar: function() {
+        html2canvas(document.getElementById('ord-canvas')).then(c => {
             const l = document.createElement('a');
-            l.download = 'ordem.jpg';
-            l.href = c.toDataURL();
+            l.download = `ORDEM_${document.getElementById('ord-pla').value}.jpg`;
+            l.href = c.toDataURL("image/jpeg", 0.9);
             l.click();
         });
     }
