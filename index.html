@@ -162,7 +162,7 @@
 <body>
 
 <header>
-    <h1>PRIME LOG<span style="color:var(--brand-accent)">.</span></h1>
+    <h1>PRIME TRANSPORTADORA<span style="color:var(--brand-accent)">.</span></h1>
     <i class="fa-solid fa-circle-user" style="font-size: 22px; opacity: 0.8"></i>
 </header>
 
@@ -237,8 +237,9 @@ const App = {
         }
         document.getElementById('inp-km').value = "";
         const row = this.data.cidades[idx];
-        const kmDaPlanilha = typeof row[1] === 'string' ? parseFloat(row[1].replace(/\./g,'').replace(',','.')) : row[1];
-        this.render(kmDaPlanilha, row);
+        // Captura o KM da planilha de forma robusta
+        const kmBase = typeof row[1] === 'string' ? parseFloat(row[1].replace(/\./g,'').replace(',','.')) : parseFloat(row[1]);
+        this.render(kmBase, row);
     },
     handleKm: function(km) {
         if(!km || km <= 0) {
@@ -261,6 +262,7 @@ const App = {
         if(id === 'mapa') setTimeout(() => this.map.invalidateSize(), 300);
     },
     render: function(kmIda, row) {
+        // CORREÇÃO DEFINITIVA: O Giro total SEMPRE é kmIda * 2
         const kmTotal = kmIda * 2; 
         document.getElementById('box-giro').style.display = 'flex';
         document.getElementById('txt-giro').innerText = kmTotal.toLocaleString('pt-BR');
