@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>PRIME LOGÍSTICA | CORPORATIVO</title>
+    <title>PRIME TRANSPORTADORA</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -57,7 +57,6 @@
         .view { display: none; width: 100%; max-width: 500px; margin: 0 auto; }
         .view.active { display: block; }
 
-        /* NAVEGAÇÃO MANTIDA */
         .nav-bottom { 
             display: flex; 
             background: white; 
@@ -80,7 +79,6 @@
         .nav-item.active { color: var(--brand-accent); }
         .nav-item i { font-size: 22px; margin-bottom: 4px; }
 
-        /* CAMPOS MANTIDOS */
         .app-card { 
             background: white; 
             border-radius: 16px; 
@@ -102,7 +100,6 @@
             background: #f8fafc;
         }
 
-        /* REDIMENSIONAMENTO DOS BALÕES DE FRETE */
         .frete-card { 
             background: white;
             padding: 12px 16px;
@@ -117,7 +114,7 @@
         .veiculo-tag { font-size: 13px; font-weight: 800; color: var(--brand-primary); }
         
         .valor-main { 
-            font-size: 28px; /* Redimensionado para caber na tela */
+            font-size: 28px; 
             font-weight: 900; 
             color: var(--brand-primary); 
             display: block;
@@ -233,24 +230,23 @@ const App = {
         });
         sel.innerHTML = h;
     },
-    // LÓGICA DE ALTERNÂNCIA: Um campo anula o outro
     handleCidade: function(idx) {
         if(!idx) {
             this.clearResults();
             return;
         }
-        document.getElementById('inp-km').value = ""; // Limpa campo KM
+        document.getElementById('inp-km').value = "";
         const row = this.data.cidades[idx];
-        this.render(parseFloat(row[1]), row);
+        const kmIda = parseFloat(row[1]);
+        this.render(kmIda, row);
     },
     handleKm: function(km) {
         if(!km || km <= 0) {
             this.clearResults();
             return;
         }
-        document.getElementById('sel-cidade').value = ""; // Reseta select de Cidade
+        document.getElementById('sel-cidade').value = "";
         const v = parseFloat(km);
-        // Busca linha de referência pela proximidade de KM para pegar os valores da planilha
         const row = this.data.cidades.reduce((p, c) => Math.abs(c[1]-v) < Math.abs(p[1]-v) ? c : p);
         this.render(v, row);
     },
@@ -265,8 +261,10 @@ const App = {
         if(id === 'mapa') setTimeout(() => this.map.invalidateSize(), 300);
     },
     render: function(kmIda, row) {
+        const kmTotal = kmIda * 2; // Correção do Cálculo de Giro Total
         document.getElementById('box-giro').style.display = 'flex';
-        document.getElementById('txt-giro').innerText = (kmIda * 2);
+        document.getElementById('txt-giro').innerText = kmTotal.toLocaleString('pt-BR');
+        
         const veics = [
             {n:'Toco', e:2, col:2, cap:10000}, {n:'Truck', e:3, col:3, cap:15000}, 
             {n:'Bitruck', e:4, col:4, cap:20000}, {n:'Carreta', e:5, col:5, cap:30000}
