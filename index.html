@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Sistema Logístico Integrado - Prime</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+
+    <style>
+        :root { 
+            --primary: #1a365d; --blue: #004a99; --google-blue: #1a73e8; 
+            --success: #2e7d32; --orange: #f39c12; --bg: #f0f2f5; 
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* Navegação por Abas */
+        .nav-tabs { 
+            display: flex; background: var(--primary); padding: 5px 10px 0; 
+            gap: 5px; z-index: 2000; box-shadow: 0 2px 10px rgba(0,0,0,0.2); 
+        }
+        .tab-btn { 
+            padding: 12px 15px; border: none; background: rgba(255,255,255,0.1); 
+            color: #fff; cursor: pointer; border-radius: 8px 8px 0 0; 
+            font-size: 13px; font-weight: 600; transition: 0.3s;
+        }
+        .tab-btn.active { background: var(--bg); color: var(--primary); }
+
+        /* Containers de Conteúdo */
+        .tab-content { display: none; flex: 1; overflow-y: auto; padding: 15px; width: 100%; }
+        .tab-content.active { display: flex; flex-direction: column; }
+        
+        /* Reset para Calculadora (Mapa ocupa tela cheia) */
+        #tab-calculadora { padding: 0; flex-direction: row; overflow: hidden; }
+
+        /* Estilos Globais de Componentes */
+        .card-pro { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; max-width: 800px; margin: auto; }
+        .input-std { width: 100%; padding: 12px; border: 1px solid #cbd5e0; border-radius: 8px; margin-bottom: 15px; outline: none; }
+        label { font-size: 11px; font-weight: 800; color: #666; text-transform: uppercase; display: block; margin-bottom: 5px; }
+
+        /* --- CSS ESPECÍFICO: TABELA --- */
+        .km-panel-tab { background: var(--blue); color: white; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 15px; }
+        .item-tab { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .v-antt-tab { font-size: 10px; color: var(--orange); font-weight: bold; }
+
+        /* --- CSS ESPECÍFICO: CALCULADORA --- */
+        .sidebar-calc { width: 400px; background: white; padding: 15px; overflow-y: auto; z-index: 1000; border-right: 1px solid #ddd; }
+        #map-calc { flex: 1; z-index: 1; }
+        @media (max-width: 768px) {
+            #tab-calculadora { flex-direction: column; }
+            .sidebar-calc { width: 100%; height: 50vh; }
+            #map-calc { height: 50vh; }
+        }
+
+        /* --- CSS ESPECÍFICO: ORDEM --- */
+        .preview-ordem { flex: 1; display: flex; justify-content: center; padding-top: 20px; }
+        .ticket-ordem { background: white; padding: 25px; border: 1px solid #000; width: 600px; height: fit-content; }
+        .table-ordem { width: 100%; border-collapse: collapse; border: 3px solid #000; }
+        .table-ordem td { border: 2px solid #000; padding: 10px; }
+        .val-ordem { font-weight: 900; font-size: 18px; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+<nav class="nav-tabs">
+    <button class="tab-btn active" onclick="Router.switch('tabela')"><i class="fas fa-table"></i> Tabela Frete</button>
+    <button class="tab-btn" onclick="Router.switch('calculadora')"><i class="fas fa-map-marked-alt"></i> Mapa & Custos</button>
+    <button class="tab-btn" onclick="Router.switch('ordem')"><i class="fas fa-file-invoice"></i> Ordem Carga</button>
+</nav>
+
+<section id="tab-tabela" class="tab-content active">
+    <div class="card-pro">
+        <h2 style="text-align:center; margin-bottom:15px; color:var(--blue)">Tabela Oficial ANTT</h2>
+        <label>Cidade Destino</label>
+        <select id="tab-selCidade" class="input-std" onchange="TabelaFrete.porCidade(this.value)"></select>
+        <label>KM Ida (Manual)</label>
+        <input type="number" id="tab-kmMan" class="input-std" placeholder="KM de ida..." oninput="TabelaFrete.porKm(this.value)">
+        <div id="tab-displayKM" class="km-panel-tab" style="display:none">Ida + Volta: <span id="tab-kmTotal" style="font-size:20px; font-weight:900">0</span> KM</div>
+        <div id="tab-lista"></div>
+    </div>
+</section>
+
+<section id="tab-calculadora" class="tab-content">
+    <div class="sidebar-calc">
+        <label>Buscar Localização</label>
+        <input type="text" id="calc-busca" class="input-std" placeholder="Cidade + Enter" onkeypress="CalculadoraMapa.handleEnter(event)">
+        <div id="calc-sugestoes" style="background:#fff; border:1px solid #ddd; display:none; margin-top:-10px; margin-bottom:10px;"></div>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
+            <button class="tab-btn" style="background:var(--google-blue); border-radius:4px" onclick="CalculadoraMapa.setTipo('ida')" id="btn-ida">SÓ IDA</button>
+            <button class="tab-btn" style="background:#666; border-radius:4px" onclick="CalculadoraMapa.setTipo('idavolta')" id="btn-idavolta">IDA/VOLTA</button>
+        </div>
+
+        <div id="calc-listaAtiva" style="margin:10px 0"></div>
+        <button class="tab-btn" style="width:100%; background:var(--success); margin-bottom:10px;" onclick="CalculadoraMapa.calcular()">CALCULAR ROTA</button>
+        
+        <div id="calc-dre" class="card-pro" style="background:#1a1a1a; color:#fff; display:none; padding:10px;">
+            <div style="display:flex; justify-content:space-between"><span>LUCRO:</span><span id="calc-resLucro" style="color:#00e676; font-weight:900">R$ 0,00</span></div>
+        </div>
+    </div>
+    <div id="map-calc"></div>
+</section>
+
+<section id="tab-ordem" class="tab-content">
+    <div style="display:flex; gap:20px; flex-wrap:wrap">
+        <div class="card-pro" style="flex:1; min-width:300px;">
+            <label>Cliente</label>
+            <input type="text" id="ord-cliente" class="input-std" oninput="OrdemCarga.sync()">
+            <label>Motorista</label>
+            <input type="text" id="ord-motorista" class="input-std" oninput="OrdemCarga.sync()">
+            <label>Placa</label>
+            <input type="text" id="ord-placa" class="input-std" oninput="OrdemCarga.sync()">
+            <button class="tab-btn" style="background:var(--primary); width:100%" onclick="OrdemCarga.gerar()">GERAR IMAGEM</button>
+        </div>
+        
+        <div class="preview-ordem">
+            <div id="ord-print" class="ticket-ordem">
+                <table class="table-ordem">
+                    <tr>
+                        <td colspan="2" style="text-align:center">
+                            <h2 style="margin:0">PRIME TRANSPORTADORA</h2>
+                            <small>ORDEM DE CARREGAMENTO</small>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label>CLIENTE</label><div class="val-ordem" id="view-cliente">---</div></td>
+                        <td><label>PLACA</label><div class="val-ordem" id="view-placa">---</div></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><label>MOTORISTA</label><div class="val-ordem" id="view-motorista">---</div></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// --- CORE ROUTER ---
+const Router = {
+    switch: (tabId) => {
+        document.querySelectorAll('.tab-btn, .tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelector(`[onclick="Router.switch('${tabId}')"]`).classList.add('active');
+        document.getElementById(`tab-${tabId}`).classList.add('active');
+        if(tabId === 'calculadora') setTimeout(() => CalculadoraMapa.map.invalidateSize(), 200);
+    }
+};
+
+// --- MODULO: TABELA FRETE ---
+const TabelaFrete = {
+    api: 'https://script.google.com/macros/s/AKfycbx8wr0xEwFVEvBRaEkcHu_2TFwH_KN8zFcoD4x2023PzqqucGFUhz2rxfOXfdIe7B_w/exec',
+    base: { cidades: [], antt: {} },
+    init: function() {
+        const script = document.createElement('script');
+        script.src = `${this.api}?callback=TabelaFrete.setup`;
+        document.body.appendChild(script);
+    },
+    setup: function(data) {
+        this.base = data;
+        const sel = document.getElementById('tab-selCidade');
+        const ord = data.cidades.map((c, i) => ({ n: c[0], k: c[1], id: i }))
+                      .filter(x => x.n !== "").sort((a,b) => a.n.localeCompare(b.n));
+        let h = '<option value="">Selecione...</option>';
+        ord.forEach(x => h += `<option value="${x.id}">${x.n} (${x.k} KM)</option>`);
+        sel.innerHTML = h;
+    },
+    porCidade: function(id) {
+        if(!id) return;
+        const row = this.base.cidades[id];
+        this.calc(parseFloat(row[1]), row);
+    },
+    porKm: function(val) {
+        if(!val) return;
+        const km = parseFloat(val);
+        const row = this.base.cidades.reduce((p, c) => Math.abs(c[1]-km) < Math.abs(p[1]-km) ? c : p);
+        this.calc(km, row);
+    },
+    calc: function(kmIda, row) {
+        document.getElementById('tab-displayKM').style.display = 'block';
+        document.getElementById('tab-kmTotal').innerText = (kmIda * 2);
+        const veiculos = [
+            {n:'Toco', e:2, col:2, vol:10000}, {n:'Truck', e:3, col:3, vol:15000},
+            {n:'Bitruck', e:4, col:4, vol:20000}, {n:'Carreta', e:5, col:5, vol:30000}
+        ];
+        let h = '';
+        veiculos.forEach(v => {
+            const c = this.base.antt[v.e];
+            const vMin = ((kmIda * c.ccd) + c.cc) + ((kmIda * c.ccd) * 0.92);
+            let pP = row[v.col];
+            if(typeof pP === 'string') pP = parseFloat(pP.replace(/\./g,'').replace(',','.'));
+            h += `<div class="item-tab">
+                <div><b>${v.n}</b><br><span class="v-antt-tab">Mín: R$ ${vMin.toLocaleString('pt-BR')}</span></div>
+                <div style="text-align:right"><b>R$ ${pP.toLocaleString('pt-BR')}</b></div>
+            </div>`;
+        });
+        document.getElementById('tab-lista').innerHTML = h;
+    }
+};
+
+// --- MODULO: CALCULADORA MAPA ---
+const CalculadoraMapa = {
+    map: null, pontos: [], tipo: 'ida', routing: null,
+    init: function() {
+        this.map = L.map('map-calc').setView([-16.68, -49.25], 5);
+        L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}').addTo(this.map);
+        this.map.on('click', e => this.add(e.latlng.lat, e.latlng.lng, "Ponto no Mapa"));
+    },
+    setTipo: function(t) { 
+        this.tipo = t;
+        document.getElementById('btn-ida').style.background = t === 'ida' ? 'var(--google-blue)' : '#666';
+        document.getElementById('btn-idavolta').style.background = t === 'idavolta' ? 'var(--google-blue)' : '#666';
+    },
+    handleEnter: function(e) {
+        if(e.key !== 'Enter') return;
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${e.target.value}&limit=3`)
+            .then(r => r.json()).then(data => {
+                let h = '';
+                data.forEach(i => h += `<div style="padding:10px; cursor:pointer; border-bottom:1px solid #eee" onclick="CalculadoraMapa.add(${i.lat},${i.lon},'${i.display_name.split(',')[0]}')">${i.display_name}</div>`);
+                document.getElementById('calc-sugestoes').innerHTML = h;
+                document.getElementById('calc-sugestoes').style.display = 'block';
+            });
+    },
+    add: function(lat, lon, nome) {
+        this.pontos.push({ latlng: L.latLng(lat, lon), nome });
+        document.getElementById('calc-sugestoes').style.display = 'none';
+        this.render();
+    },
+    render: function() {
+        let h = '';
+        this.pontos.forEach((p, i) => h += `<div style="font-size:12px; margin-bottom:5px;">📍 ${p.nome}</div>`);
+        document.getElementById('calc-listaAtiva').innerHTML = h;
+    },
+    calcular: function() {
+        if(this.pontos.length < 2) return alert("Selecione Origem e Destino");
+        if(this.routing) this.map.removeControl(this.routing);
+        const pts = this.tipo === 'idavolta' ? [...this.pontos, this.pontos[0]] : this.pontos;
+        this.routing = L.Routing.control({
+            waypoints: pts.map(p => p.latlng),
+            createMarker: () => null,
+            lineOptions: { styles: [{ color: 'var(--google-blue)', weight: 5 }] }
+        }).on('routesfound', (e) => {
+            const lucro = (e.routes[0].summary.totalDistance / 1000) * 2.5; // Exemplo de lógica
+            document.getElementById('calc-dre').style.display = 'block';
+            document.getElementById('calc-resLucro').innerText = `R$ ${lucro.toFixed(2)}`;
+        }).addTo(this.map);
+    }
+};
+
+// --- MODULO: ORDEM CARGA ---
+const OrdemCarga = {
+    sync: function() {
+        document.getElementById('view-cliente').innerText = document.getElementById('ord-cliente').value || '---';
+        document.getElementById('view-motorista').innerText = document.getElementById('ord-motorista').value || '---';
+        document.getElementById('view-placa').innerText = document.getElementById('ord-placa').value || '---';
+    },
+    gerar: function() {
+        html2canvas(document.getElementById('ord-print')).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'ordem.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+    }
+};
+
+// Inicialização Geral
+window.onload = () => {
+    TabelaFrete.init();
+    CalculadoraMapa.init();
+};
+</script>
+
+</body>
+</html>
