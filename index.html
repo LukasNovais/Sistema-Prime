@@ -20,11 +20,10 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         
-        /* Ajuste de altura dinâmica para evitar que o rodapé suma */
         body { 
             background: var(--bg); 
             height: 100vh; 
-            height: 100dvh; /* Altura dinâmica para navegadores modernos */
+            height: 100dvh; 
             font-family: 'Segoe UI', Roboto, sans-serif;
             display: flex; 
             flex-direction: column; 
@@ -43,7 +42,6 @@
             flex-shrink: 0;
         }
 
-        /* CONTEÚDO COM ROLAGEM INDEPENDENTE */
         .app-content { 
             flex: 1; 
             overflow-y: auto; 
@@ -55,13 +53,12 @@
         .view { display: none; width: 100%; max-width: 800px; margin: 0 auto; }
         .view.active { display: block; }
 
-        /* NAVEGAÇÃO INFERIOR FIXA E SEMPRE VISÍVEL */
         .nav-bottom { 
             display: flex; 
             background: var(--primary); 
             height: 75px; 
             flex-shrink: 0;
-            padding-bottom: env(safe-area-inset-bottom); /* Espaço para "queixo" do iPhone */
+            padding-bottom: env(safe-area-inset-bottom);
             box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
         }
         .nav-item { 
@@ -82,7 +79,6 @@
         }
         .nav-item i { font-size: 24px; margin-bottom: 4px; }
 
-        /* TABELA DE FRETE CORRIGIDA */
         .app-card { 
             background: var(--card-bg); 
             border-radius: 15px; 
@@ -103,7 +99,6 @@
             background: white;
         }
 
-        /* CARD DE PREÇO REDIMENSIONÁVEL */
         .frete-row { 
             background: white;
             padding: 15px;
@@ -118,12 +113,22 @@
         .veiculo-tag { font-size: 14px; font-weight: 900; color: var(--primary); text-transform: uppercase; }
         
         .valor-gigante { 
-            font-size: clamp(28px, 9vw, 42px); /* Fonte Fluida para caber no celular */
+            font-size: clamp(28px, 9vw, 42px); 
             font-weight: 900; 
             color: var(--success); 
             display: block;
             margin: 5px 0;
             white-space: nowrap;
+        }
+        .valor-litro {
+            font-size: 18px;
+            font-weight: 800;
+            color: #1a365d;
+            background: #eef2f7;
+            padding: 4px 10px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-bottom: 8px;
         }
         .antt-info { font-size: 12px; color: #64748b; font-weight: 600; }
 
@@ -139,7 +144,6 @@
             text-transform: uppercase;
         }
 
-        /* MAPA */
         #map-view { height: 100%; width: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
         .map-overlay { position: absolute; top: 10px; left: 10px; right: 10px; z-index: 1000; }
 
@@ -244,15 +248,25 @@ const App = {
     render: function(kmIda, row) {
         document.getElementById('box-giro').style.display = 'block';
         document.getElementById('txt-giro').innerText = (kmIda * 2);
-        const veics = [{n:'Toco', e:2, col:2}, {n:'Truck', e:3, col:3}, {n:'Bitruck', e:4, col:4}, {n:'Carreta', e:5, col:5}];
+        const veics = [
+            {n:'Toco', e:2, col:2, cap:10000}, 
+            {n:'Truck', e:3, col:3, cap:15000}, 
+            {n:'Bitruck', e:4, col:4, cap:20000}, 
+            {n:'Carreta', e:5, col:5, cap:30000}
+        ];
         let h = '';
         veics.forEach(v => {
             const c = this.data.antt[v.e];
             const vMin = (kmIda * c.ccd + c.cc) + (kmIda * c.ccd * 0.92);
             let pP = typeof row[v.col] === 'string' ? parseFloat(row[v.col].replace(/\./g,'').replace(',','.')) : row[v.col];
+            
+            // Cálculo do Valor por Litro
+            const vLitro = pP / v.cap;
+
             h += `<div class="frete-row">
                 <span class="veiculo-tag">${v.n}</span>
                 <span class="valor-gigante">R$ ${pP.toLocaleString('pt-BR',{minimumFractionDigits:2})}</span>
+                <div class="valor-litro">R$ ${vLitro.toLocaleString('pt-BR',{minimumFractionDigits:4})} /L</div>
                 <div class="antt-info">Mínimo ANTT: R$ ${vMin.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
             </div>`;
         });
