@@ -75,8 +75,8 @@
             <div id="optIdaVolta" class="route-option" onclick="setTipoRota('idavolta')">IDA E VOLTA</div>
         </div>
         <div class="grid">
-            <div><label style="font-size:9px; font-weight:bold;">VALOR KM</label><input type="number" id="valorKm" class="input-std" value="4.80"></div>
-            <div><label style="font-size:9px; font-weight:bold;">DIESEL</label><input type="number" id="diesel" class="input-std" value="5.40"></div>
+            <div><label style="font-size:9px; font-weight:bold;">VALOR KM</label><input type="number" id="valorKm" class="input-std" value="5.70"></div>
+            <div><label style="font-size:9px; font-weight:bold;">DIESEL</label><input type="number" id="diesel" class="input-std" value="7.20"></div>
             <div><label style="font-size:9px; font-weight:bold;">MÉDIA C.</label><input type="number" id="mediaC" class="input-std" value="3.5"></div>
             <div><label style="font-size:9px; font-weight:bold;">MÉDIA V.</label><input type="number" id="mediaV" class="input-std" value="3.7"></div>
             <div><label style="font-size:9px; font-weight:bold;">EIXOS</label><input type="number" id="eixos" class="input-std" value="3"></div>
@@ -241,7 +241,7 @@
 
             let freteBruto = (tipoRota === 'ida') ? (kmIda * vKm) : (giroTotal * vKm);
             let custoDiesel = ((kmIda / mC) + (kmIda / mV)) * dieselPreco;
-            let custoPedagio = (giroTotal * 0.15) * nEixos; 
+            let custoPedagio = (giroTotal * 0.0) * nEixos; 
             let valorComissao = freteBruto * (pComissao / 100);
             let lucroLiquido = freteBruto - custoDiesel - custoPedagio - valorComissao;
             let margem = freteBruto > 0 ? (lucroLiquido / freteBruto) * 100 : 0;
