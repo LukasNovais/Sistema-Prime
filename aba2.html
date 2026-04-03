@@ -1,1 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Logística Pro Mestre</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    
+    <style>
+        :root { --primary: #1a237e; --google-blue: #1a73e8; --success: #2e7d32; --warning: #fbbc04; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; background: #f0f2f5; overflow: hidden; }
+        
+        /* Layout Mobile First */
+        .sidebar { width: 100%; max-width: 450px; background: white; padding: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); overflow-y: auto; z-index: 1000; flex-shrink: 0; height: 50vh; }
+        #map { flex-grow: 1; width: 100%; height: 50vh; z-index: 1; }
 
+        @media (min-width: 768px) {
+            body { flex-direction: row; }
+            .sidebar { height: 100vh; width: 400px; }
+            #map { height: 100vh; }
+        }
+
+        .section { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; margin-bottom: 10px; }
+        .title { font-size: 0.7rem; font-weight: 800; color: #555; text-transform: uppercase; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 3px; }
+
+        .search-container { position: relative; margin-bottom: 10px; }
+        .input-std { width: 100%; height: 40px; border: 1px solid #bdbdbd; border-radius: 6px; padding: 0 10px; box-sizing: border-box; font-size: 14px; font-weight: 600; }
+        
+        #sugestoes { position: absolute; top: 42px; left: 0; width: 100%; background: white; border: 1px solid #ccc; border-radius: 6px; max-height: 180px; overflow-y: auto; display: none; z-index: 3001; box-shadow: 0 8px 16px rgba(0,0,0,0.2); }
+        .sugestao-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 13px; }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .route-type { display: flex; background: #f0f0f0; border-radius: 6px; padding: 4px; margin: 8px 0; }
+        .route-option { flex: 1; text-align: center; padding: 10px; font-size: 11px; font-weight: bold; cursor: pointer; border-radius: 4px; }
+        .route-option.active { background: var(--primary); color: white; }
+
+        .btn { width: 100%; height: 40px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 5px; margin-bottom: 5px; }
+        .bg-blue { background: var(--google-blue); color: white; }
+        .bg-calc { background: var(--success); color: white; font-size: 14px; height: 48px; }
+        
+        .ponto-card { background: #f8f9fa; border: 1px solid #ddd; padding: 8px; border-radius: 8px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; border-left: 5px solid var(--google-blue); }
+
+        .dre-box { background: #1a1a1a; color: #fff; border-radius: 12px; padding: 15px; margin-top: 10px; }
+        .dre-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #333; font-size: 13px; }
+        .lucro-val { font-size: 20px; color: #00e676; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div style="text-align:center; padding-bottom:5px;"><h2 style="margin:0; color: var(--primary); font-size: 1rem;">MASTER LOGÍSTICA PRO</h2></div>
+
+    <div class="section">
+        <span class="title">📍 Localização (Busca ou Coords)</span>
+        <div class="search-container">
+            <input type="text" id="busca" class="input-std" placeholder="Cidade + ENTER" onkeypress="handleEnter(event)">
+            <div id="sugestoes"></div>
+        </div>
+        <div class="grid">
+            <input type="text" id="inputCoord" class="input-std" placeholder="Lat, Lon do Maps">
+            <input type="text" id="inputPlus" class="input-std" placeholder="Plus Code">
+        </div>
+        <div class="grid" style="margin-top:5px;">
+            <button class="btn bg-blue" onclick="addCoord()">+ Coords</button>
+            <button class="btn bg-blue" onclick="addPlus()">+ Plus Code</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <span class="title">⚙️ Custos e Negociação</span>
+        <div class="route-type">
+            <div id="optIda" class="route-option active" onclick="setTipoRota('ida')">SÓ IDA</div>
+            <div id="optIdaVolta" class="route-option" onclick="setTipoRota('idavolta')">IDA E VOLTA</div>
+        </div>
+        <div class="grid">
+            <div><label style="font-size:9px; font-weight:bold;">VALOR KM</label><input type="number" id="valorKm" class="input-std" value="4.80"></div>
+            <div><label style="font-size:9px; font-weight:bold;">DIESEL</label><input type="number" id="diesel" class="input-std" value="5.40"></div>
+            <div><label style="font-size:9px; font-weight:bold;">MÉDIA C.</label><input type="number" id="mediaC" class="input-std" value="3.5"></div>
+            <div><label style="font-size:9px; font-weight:bold;">MÉDIA V.</label><input type="number" id="mediaV" class="input-std" value="3.7"></div>
+            <div><label style="font-size:9px; font-weight:bold;">EIXOS</label><input type="number" id="eixos" class="input-std" value="3"></div>
+            <div><label style="font-size:9px; font-weight:bold;">COMIS. %</label><input type="number" id="comissao" class="input-std" value="17"></div>
+        </div>
+        <button class="btn bg-calc" onclick="calcularTudo()">🚀 CALCULAR FRETE</button>
+        <button class="btn" style="background:white; color:red; border:1px solid red; margin-top:5px;" onclick="limparTudo()">🗑️ LIMPAR</button>
+    </div>
+
+    <div id="listaAtiva"></div>
+
+    <div id="resultadoDRE" class="dre-box" style="display:none;">
+        <div class="dre-row"><span>Distância Ida:</span><span id="resKmIda">0</span></div>
+        <div class="dre-row"><span>Giro Total:</span><span id="resKmTotal">0</span></div>
+        <div class="dre-row"><span>Ref. Mínima ANTT:</span><span id="resAntt" style="color:var(--warning)">R$ 0,00</span></div>
+        <div class="dre-row"><span>FRETE BRUTO:</span><span id="resBruto" style="color:#81c784; font-weight:bold;">R$ 0,00</span></div>
+        <div class="dre-row"><span>Diesel:</span><span id="resDiesel" style="color:#ff8a80;">- R$ 0,00</span></div>
+        <div class="dre-row"><span>Pedágio Est.:</span><span id="resPedagio" style="color:#ff8a80;">- R$ 0,00</span></div>
+        <div class="dre-row"><span>Comissão:</span><span id="resComissao" style="color:#ff8a80;">- R$ 0,00</span></div>
+        <div class="dre-row" style="margin-top:10px; padding-top:10px; border-top:1px solid #444;">
+            <span>LUCRO LÍQUIDO:</span><span id="resLucro" class="lucro-val">R$ 0,00</span>
+        </div>
+        <div class="dre-row"><span>MARGEM:</span><span id="resMargem" style="color:#81d4fa; font-weight:bold;">0%</span></div>
+        <button class="btn" style="background:#25d366; color:white; margin-top:10px;" onclick="enviarZap()">📱 ENVIAR WHATSAPP</button>
+    </div>
+</div>
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+
+<script>
+    var map = L.map('map').setView([-16.68, -49.25], 5);
+    L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}').addTo(map);
+
+    var pontos = [];
+    var marcadores = [];
+    var routingControl = null;
+    var tipoRota = 'ida';
+
+    map.on('click', e => adicionar(e.latlng.lat, e.latlng.lng, "Ponto no Mapa"));
+
+    function setTipoRota(t) {
+        tipoRota = t;
+        document.getElementById('optIda').classList.toggle('active', t === 'ida');
+        document.getElementById('optIdaVolta').classList.toggle('active', t === 'idavolta');
+    }
+
+    function handleEnter(e) {
+        if(e.key === 'Enter') {
+            let q = document.getElementById('busca').value;
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&countrycodes=br&limit=5`)
+                .then(r => r.json()).then(data => {
+                    let h = '';
+                    data.forEach(i => {
+                        // SUGESTÃO APLICADA: Evitar que aspas no nome da cidade quebrem a função JS
+                        let nomeSeguro = i.display_name.split(',')[0].replace(/'/g, "");
+                        h += `<div class="sugestao-item" onclick="adicionar(${i.lat},${i.lon},'${nomeSeguro}')">${i.display_name}</div>`;
+                    });
+                    document.getElementById('sugestoes').innerHTML = h;
+                    document.getElementById('sugestoes').style.display = 'block';
+                });
+        }
+    }
+
+    function adicionar(lat, lon, nome) {
+        let nLat = parseFloat(lat);
+        let nLon = parseFloat(lon);
+        if(isNaN(nLat) || isNaN(nLon)) return alert("Coordenada inválida");
+
+        pontos.push({ id: Date.now(), latlng: L.latLng(nLat, nLon), nome: nome });
+        document.getElementById('sugestoes').style.display = 'none';
+        document.getElementById('busca').value = '';
+        renderLista();
+    }
+
+    function renderLista() {
+        marcadores.forEach(m => map.removeLayer(m));
+        marcadores = [];
+        let html = '';
+        pontos.forEach((p, i) => {
+            // SUGESTÃO APLICADA: Adicionado cursor:pointer no botão de remover para melhor UX
+            html += `<div class="ponto-card"><span><b>${i==0?'🏁':'📍'}</b> ${p.nome.substring(0,25)}</span><button onclick="remover(${p.id})" style="border:none; background:none; color:red; font-weight:bold; cursor:pointer;">✕</button></div>`;
+            marcadores.push(L.marker(p.latlng).addTo(map));
+        });
+        document.getElementById('listaAtiva').innerHTML = html;
+        if(pontos.length > 0) map.panTo(pontos[pontos.length-1].latlng);
+    }
+
+    function addCoord() {
+        let v = document.getElementById('inputCoord').value;
+        let c = v.match(/-?\d+\.\d+/g); 
+        if(c && c.length >= 2) {
+            adicionar(c[0], c[1], "Ponto Coordenada");
+            document.getElementById('inputCoord').value = '';
+        } else {
+            alert("Cole a coordenada do Maps (Ex: -16.32, -48.95)");
+        }
+    }
+
+    function addPlus() {
+        let code = document.getElementById('inputPlus').value;
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(code)}`)
+            .then(r => r.json()).then(data => {
+                if(data[0]) {
+                    adicionar(data[0].lat, data[0].lon, "Plus Code: " + code);
+                    document.getElementById('inputPlus').value = '';
+                } else { alert("Plus Code não encontrado."); }
+            });
+    }
+
+    async function calcularTudo() {
+        if (pontos.length < 2) return alert("Defina pelo menos Origem e Destino.");
+
+        // Feedback visual de carregamento
+        const btnCalc = document.querySelector('.bg-calc');
+        const originalText = btnCalc.innerText;
+        btnCalc.innerText = "⏳ PROCESSANDO ROTA...";
+        btnCalc.disabled = true;
+
+        if (routingControl) {
+            map.removeControl(routingControl);
+            routingControl = null;
+        }
+
+        // Montagem inteligente da rota
+        let rotaFisica = tipoRota === 'idavolta' ? [...pontos, pontos[0]] : [...pontos];
+        
+        // Extrai apenas lat/lng puras para a URL da API ficar curta e limpa
+        const waypointsCalculo = rotaFisica.map(p => p.latlng);
+
+        routingControl = L.Routing.control({
+            waypoints: waypointsCalculo,
+            router: L.Routing.osrmv1({ 
+                serviceUrl: 'https://router.project-osrm.org/route/v1',
+                profile: 'driving',
+                timeout: 10000, // 10 segundos de espera antes de desistir
+                suppressMessages: true
+            }),
+            show: false,
+            addWaypoints: false,
+            createMarker: () => null,
+            lineOptions: { styles: [{ color: '#1a73e8', weight: 6, opacity: 0.8 }] }
+        }).on('routesfound', function(e) {
+            btnCalc.innerText = originalText;
+            btnCalc.disabled = false;
+
+            const route = e.routes[0];
+            const kmTotal = (route.summary.totalDistance / 1000);
+            
+            // Lógica de Negócio
+            const vKm = parseFloat(document.getElementById('valorKm').value) || 0;
+            const dieselPreco = parseFloat(document.getElementById('diesel').value) || 0;
+            const mC = parseFloat(document.getElementById('mediaC').value) || 1;
+            const mV = parseFloat(document.getElementById('mediaV').value) || 1;
+            const nEixos = parseInt(document.getElementById('eixos').value) || 1;
+            const pComissao = parseFloat(document.getElementById('comissao').value) || 0;
+
+            // Distâncias reais
+            let kmIda = (tipoRota === 'idavolta') ? kmTotal / 2 : kmTotal;
+            let giroTotal = (tipoRota === 'idavolta') ? kmTotal : kmIda * 2;
+
+            let freteBruto = (tipoRota === 'ida') ? (kmIda * vKm) : (giroTotal * vKm);
+            let custoDiesel = ((kmIda / mC) + (kmIda / mV)) * dieselPreco;
+            let custoPedagio = (giroTotal * 0.15) * nEixos; 
+            let valorComissao = freteBruto * (pComissao / 100);
+            let lucroLiquido = freteBruto - custoDiesel - custoPedagio - valorComissao;
+            let margem = freteBruto > 0 ? (lucroLiquido / freteBruto) * 100 : 0;
+
+            // Exibição nos campos
+            document.getElementById('resKmIda').innerText = kmIda.toFixed(1) + " km";
+            document.getElementById('resKmTotal').innerText = giroTotal.toFixed(1) + " km";
+            document.getElementById('resAntt').innerText = "R$ " + (kmIda * 5.85).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+            document.getElementById('resBruto').innerText = "R$ " + freteBruto.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+            document.getElementById('resDiesel').innerText = "- R$ " + custoDiesel.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+            document.getElementById('resPedagio').innerText = "- R$ " + custoPedagio.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+            document.getElementById('resComissao').innerText = "- R$ " + valorComissao.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+            document.getElementById('resLucro').innerText = "R$ " + lucroLiquido.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+            document.getElementById('resMargem').innerText = margem.toFixed(1) + "%";
+            
+            document.getElementById('resultadoDRE').style.display = 'block';
+            map.fitBounds(L.latLngBounds(waypointsCalculo), {padding: [50, 50]});
+
+        }).on('routingerror', function(err) {
+            btnCalc.innerText = originalText;
+            btnCalc.disabled = false;
+            console.error(err);
+            alert("O servidor de rotas demorou a responder (Timeout). \n\nMotivo: 5 ou mais localizações podem exceder o limite do servidor gratuito. Tente calcular com 2 ou 3 pontos primeiro.");
+        }).addTo(map);
+    }
+    function remover(id) { pontos = pontos.filter(p => p.id !== id); renderLista(); }
+    function limparTudo() { pontos = []; renderLista(); document.getElementById('resultadoDRE').style.display='none'; if(routingControl) map.removeControl(routingControl); }
+
+    function enviarZap() {
+        let msg = `*RELATÓRIO FRETE*%0A💰 VALOR: ${document.getElementById('resBruto').innerText}%0A✅ LUCRO: ${document.getElementById('resLucro').innerText} (${document.getElementById('resMargem').innerText})`;
+        window.open(`https://api.whatsapp.com/send?text=${msg}`);
+    }
+</script>
+</body>
+</html>
