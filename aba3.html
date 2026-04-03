@@ -1,1 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ordem de Carregamento - Prime</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+        body { background-color: #e9ecef; color: #333; padding: 20px; display: flex; justify-content: center; }
+        .app-container { display: flex; flex-wrap: wrap; gap: 30px; width: 100%; max-width: 1300px; }
+        
+        /* FORMULÁRIO */
+        .form-section { flex: 1; min-width: 350px; background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); height: fit-content; }
+        .form-section h2 { font-size: 18px; color: #1a365d; margin-bottom: 20px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;}
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 600; color: #4a5568; margin-bottom: 5px; text-transform: uppercase;}
+        .form-group input { width: 100%; padding: 12px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 14px; text-transform: uppercase; outline: none; }
+        
+        .product-input-grid { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 10px; }
+        .btn-add { background: #38a169; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        
+        .btn-gerar { width: 100%; background: #1a365d; color: white; border: none; padding: 18px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 20px; text-transform: uppercase; }
 
+        /* LAYOUT DA ORDEM */
+        .preview-section { flex: 1.5; min-width: 600px; }
+        .ticket-wrapper { background: #fff; padding: 30px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border-radius: 4px; border: 1px solid #ddd; }
+        .document-table { width: 100%; border-collapse: collapse; border: 3px solid #000; table-layout: fixed; } 
+        .document-table td { border: 2px solid #000; vertical-align: middle; }
+        
+        .header-cell { text-align: center; padding: 15px 20px; border-bottom: 3px solid #000 !important; }
+        .doc-title { font-size: 10px; text-transform: uppercase; font-weight: bold; color: #666; letter-spacing: 1px; margin-bottom: 5px; display: block; }
+        .header-cell h1 { font-size: 28px; margin-bottom: 2px; font-weight: 900; color: #000; }
+        .header-info { font-size: 11px; color: #333; font-weight: 600; line-height: 1.4; }
+        .whatsapp-icon { color: #25d366; margin-right: 4px; font-size: 12px; }
+        
+        .lbl-row { padding: 12px 15px; border-bottom: 2px solid #000; display: flex; align-items: baseline; gap: 10px; }
+        .lbl { font-size: 11px; font-weight: bold; color: #444; text-transform: uppercase; min-width: 100px; }
+        .val { font-size: 18px; font-weight: bold; color: #000; text-transform: uppercase; }
+
+        .col-produtos { width: 40%; height: 100%; vertical-align: middle !important; background: #fff; text-align: center; }
+        .prod-item { border-bottom: 2px solid #000; padding: 20px 5px; }
+        .prod-item:last-child { border-bottom: none; }
+        .prod-title { font-size: 13px; font-weight: 900; background: #eee; padding: 4px; border-bottom: 1px solid #000; text-transform: uppercase; margin-bottom: 8px; }
+        .prod-val { font-size: 32px; font-weight: 900; color: #d00; }
+
+        .btn-reset { background: #e53e3e; color: white; border: none; padding: 5px 10px; font-size: 10px; border-radius: 4px; cursor: pointer; margin-top: 10px; }
+    </style>
+</head>
+<body onload="iniciarApp()">
+
+<div class="app-container">
+    <div class="form-section">
+        <h2>Dados da Carga</h2>
+        <div class="form-group"><label>Data</label><input type="text" id="in-data" readonly></div>
+        <div class="form-group"><label>Distribuidora</label><input type="text" id="in-distribuidora" oninput="atualizarDados()"></div>
+        <div class="form-group"><label>Cliente</label><input type="text" id="in-cliente" oninput="atualizarDados()"></div>
+        <div class="grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group">
+                <label>Motorista</label>
+                <input type="text" id="in-motorista" list="lista-motoristas" oninput="verificarMotorista(this.value); atualizarDados()">
+            </div>
+            <div class="form-group"><label>CPF</label><input type="text" id="in-cpf" oninput="atualizarDados()"></div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group"><label>Placa</label><input type="text" id="in-placa" oninput="atualizarDados()"></div>
+            <div class="form-group"><label>Lacre</label><input type="text" id="in-lacre" oninput="atualizarDados()"></div>
+        </div>
+        
+        <h2 style="margin-top: 10px;">Produtos</h2>
+        <div class="product-input-grid">
+            <div style="flex:1">
+                <select id="sel-tipo" style="width:100%; padding:10px; margin-bottom:5px; border-radius:6px; border:1px solid #cbd5e0;">
+                    <option value="GASOLINA C">GASOLINA</option>
+                    <option value="ETANOL">ETANOL</option>
+                    <option value="DIESEL S500">DIESEL S500</option>
+                    <option value="DIESEL S10">DIESEL S10</option>
+                </select>
+                <input type="number" id="sel-vol" placeholder="Volume (L)" style="width:100%; padding:10px; border-radius:6px; border:1px solid #cbd5e0;">
+                <label style="margin-top:8px; display:flex; align-items:center; gap:5px; font-size:12px;">
+                    <input type="checkbox" id="sel-adit"> ADITIVADA / ADITIVADO
+                </label>
+            </div>
+            <button class="btn-add" onclick="addProduto()">+</button>
+        </div>
+        
+        <button class="btn-reset" onclick="resetProdutos()">Limpar Lista de Produtos</button>
+        <button class="btn-gerar" onclick="exportarImagem()">GERAR ORDEM PROFISSIONAL</button>
+    </div>
+
+    <div class="preview-section">
+        <div class="ticket-wrapper" id="area-impressao">
+            <table class="document-table">
+                <tr>
+                    <td colspan="3" class="header-cell">
+                        <span class="doc-title">Ordem de Carregamento</span>
+                        <h1>PRIME TRANSPORTADORA</h1>
+                        <div class="header-info">
+                            CNPJ 35.977.084/0001-00 | adm@primetransportadora.com.br<br>
+                            <i class="fab fa-whatsapp whatsapp-icon"></i>62.99941-2539
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="width: 60%; vertical-align: top; padding: 0;">
+                        <div class="lbl-row"><span class="lbl">DATA:</span><span class="val" id="out-data"></span></div>
+                        <div class="lbl-row"><span class="lbl">DISTRIB:</span><span class="val" id="out-distribuidora"></span></div>
+                        <div class="lbl-row"><span class="lbl">CLIENTE:</span><span class="val" id="out-cliente"></span></div>
+                        <div style="display: flex; border-bottom: 2px solid #000;">
+                            <div style="flex: 1; padding: 10px 15px; border-right: 2px solid #000;"><span class="lbl">MOTORISTA:</span><br><span class="val" id="out-motorista"></span></div>
+                            <div style="flex: 1; padding: 10px 15px;"><span class="lbl">CPF:</span><br><span class="val" id="out-cpf"></span></div>
+                        </div>
+                        <div style="display: flex;">
+                            <div style="flex: 1; padding: 10px 15px; border-right: 2px solid #000;"><span class="lbl">PLACA:</span><br><span class="val" id="out-placa" style="font-size: 24px;"></span></div>
+                            <div style="flex: 1; padding: 10px 15px;"><span class="lbl">LACRES:</span><br><span class="val" id="out-lacre"></span></div>
+                        </div>
+                    </td>
+                    <td class="col-produtos" id="out-lista-produtos">
+                        </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<datalist id="lista-motoristas"></datalist>
+
+<script>
+    let listaProdutos = [];
+    let bancoDeDadosLocal = {};
+
+    function iniciarApp() {
+        definirData();
+        // Tenta buscar dados do Google Sheets se estiver no ambiente GAS
+        if (typeof google !== 'undefined') {
+            google.script.run.withSuccessHandler(function(dados) {
+                bancoDeDadosLocal = dados;
+                const dnM = document.getElementById('lista-motoristas');
+                Object.keys(dados).forEach(nome => dnM.innerHTML += `<option value="${nome}">`);
+            }).getDadosCompletos();
+        }
+    }
+
+    function definirData() {
+        const hoje = new Date();
+        const formatada = hoje.toLocaleDateString('pt-BR');
+        document.getElementById('in-data').value = formatada;
+        document.getElementById('out-data').innerText = formatada;
+    }
+
+    function verificarMotorista(valor) {
+        const nome = valor.toUpperCase();
+        if (bancoDeDadosLocal[nome]) {
+            document.getElementById('in-cpf').value = bancoDeDadosLocal[nome].cpf;
+            document.getElementById('in-placa').value = bancoDeDadosLocal[nome].placa;
+        }
+    }
+
+    function atualizarDados() {
+        document.getElementById('out-distribuidora').innerText = document.getElementById('in-distribuidora').value;
+        document.getElementById('out-cliente').innerText = document.getElementById('in-cliente').value;
+        document.getElementById('out-motorista').innerText = document.getElementById('in-motorista').value;
+        document.getElementById('out-cpf').innerText = document.getElementById('in-cpf').value;
+        document.getElementById('out-placa').innerText = document.getElementById('in-placa').value;
+        document.getElementById('out-lacre').innerText = document.getElementById('in-lacre').value;
+    }
+
+    function addProduto() {
+        const tipo = document.getElementById('sel-tipo').value;
+        const vol = document.getElementById('sel-vol').value;
+        const adit = document.getElementById('sel-adit').checked;
+
+        if (!vol || vol <= 0) return;
+
+        let nomeFinal = tipo;
+        if (adit) {
+            if (tipo.includes("GASOLINA")) nomeFinal = "GASOLINA ADITIVADA";
+            else if (tipo.includes("S500")) nomeFinal = "S500 ADITIVADO";
+            else if (tipo.includes("S10")) nomeFinal = "S10 ADITIVADO";
+            else nomeFinal = tipo + " ADIT.";
+        }
+
+        listaProdutos.push({ nome: nomeFinal, volume: vol });
+        document.getElementById('sel-vol').value = '';
+        document.getElementById('sel-adit').checked = false;
+        renderizarProdutos();
+    }
+
+    function renderizarProdutos() {
+        const container = document.getElementById('out-lista-produtos');
+        container.innerHTML = '';
+        listaProdutos.forEach(p => {
+            const div = document.createElement('div');
+            div.className = 'prod-item';
+            div.innerHTML = `<div class="prod-title">${p.nome}</div><div class="prod-val">${p.volume}</div>`;
+            container.appendChild(div);
+        });
+    }
+
+    function resetProdutos() {
+        listaProdutos = [];
+        renderizarProdutos();
+    }
+
+    function exportarImagem() {
+        const motorista = document.getElementById('in-motorista').value;
+        const cpf = document.getElementById('in-cpf').value;
+        const placa = document.getElementById('in-placa').value;
+
+        // Salva na planilha se estiver no GAS
+        if (typeof google !== 'undefined' && motorista) {
+            google.script.run.salvarOuAtualizar(motorista, cpf, placa);
+        }
+
+        const elemento = document.getElementById('area-impressao');
+        html2canvas(elemento, { scale: 3, backgroundColor: '#ffffff', useCORS: true }).then(canvas => {
+            let imgData = canvas.toDataURL("image/jpeg", 0.9);
+            let link = document.createElement('a');
+            link.download = 'Ordem_' + (placa || 'DOC') + '.jpg';
+            link.href = imgData;
+            link.click();
+        });
+    }
+</script>
+</body>
+</html>
