@@ -1,318 +1,72 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>PRIME TRANSPORTADORA</title>
-    
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Painel Executivo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root { 
-            --brand-primary: #0f172a; 
-            --brand-accent: #3b82f6; 
-            --brand-success: #10b981; 
-            --brand-danger: #ef4444; 
-            --bg-main: #f1f5f9;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        
-        body { 
-            background: var(--bg-main); 
-            height: 100dvh; 
-            font-family: 'Inter', sans-serif;
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden;
-        }
-
-        header {
-            background: var(--brand-primary);
-            color: white;
-            padding: 15px 18px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-shrink: 0;
-        }
-
-        header h1 { font-size: 18px; font-weight: 800; }
-
-        .app-content { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 12px; 
-            width: 100%;
-        }
-
-        .view { display: none; width: 100%; max-width: 500px; margin: 0 auto; }
-        .view.active { display: block; }
-
-        .nav-bottom { 
-            display: flex; 
-            background: white; 
-            height: 80px; 
-            flex-shrink: 0;
-            padding-bottom: env(safe-area-inset-bottom);
-            border-top: 1px solid #e2e8f0;
-        }
-        .nav-item { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 10px;
-            font-weight: 700;
-        }
-        .nav-item.active { color: var(--brand-accent); }
-        .nav-item i { font-size: 22px; margin-bottom: 4px; }
-
-        .app-card { 
-            background: white; 
-            border-radius: 16px; 
-            padding: 15px; 
-            margin-bottom: 12px;
-            box-shadow: var(--card-shadow);
-        }
-        
-        label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; display: block; }
-        
-        input, select { 
-            width: 100%; 
-            height: 56px; 
-            padding: 0 16px; 
-            border: 1.5px solid #e2e8f0; 
-            border-radius: 12px; 
-            font-size: 16px; 
-            font-weight: 600;
-            background: #f8fafc;
-        }
-
-        .frete-card { 
-            background: white;
-            padding: 12px 16px;
-            border-radius: 14px;
-            margin-bottom: 10px;
-            box-shadow: var(--card-shadow);
-            border: 1px solid #e2e8f0;
-            width: 100%;
-        }
-
-        .veiculo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-        .veiculo-tag { font-size: 13px; font-weight: 800; color: var(--brand-primary); }
-        
-        .valor-main { 
-            font-size: 28px; 
-            font-weight: 900; 
-            color: var(--brand-primary); 
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        .valor-litro-badge {
-            background: #eff6ff;
-            color: var(--brand-accent);
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 800;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            margin-bottom: 8px;
-        }
-
-        .antt-status { 
-            padding-top: 8px; 
-            border-top: 1px solid #f1f5f9;
-            display: flex;
-            justify-content: space-between;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .badge-lei { padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 800; }
-        .badge-ok { background: #dcfce7; color: var(--brand-success); }
-        .badge-warn { background: #fee2e2; color: var(--brand-danger); }
-
-        .giro-info {
-            background: var(--brand-primary);
-            border-radius: 12px;
-            padding: 12px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
+        body, html { height: 100%; overflow: hidden; }
+        .tab-content { display: none; height: calc(100vh - 130px); width: 100%; }
+        .tab-content.active { display: block; }
+        iframe { width: 100%; height: 100%; border: none; }
+        .nav-button.active { color: #3b82f6; border-top: 3px solid #3b82f6; background: #eff6ff; }
     </style>
 </head>
-<body>
+<body class="bg-slate-50 flex flex-col">
 
-<header>
-    <h1>PRIME TRANSPORTADORA<span style="color:var(--brand-accent)">.</span></h1>
-    <i class="fa-solid fa-circle-user" style="font-size: 22px; opacity: 0.8"></i>
-</header>
-
-<main class="app-content">
-    <section id="view-tabela" class="view active">
-        <div class="app-card">
-            <div style="margin-bottom: 12px;">
-                <label>Destino Comercial</label>
-                <select id="sel-cidade" onchange="App.handleCidade(this.value)">
-                    <option>Carregando cidades...</option>
-                </select>
-            </div>
-            <div>
-                <label>Quilometragem Ida (Manual)</label>
-                <input type="number" id="inp-km" placeholder="Digite o KM..." oninput="App.handleKm(this.value)">
-            </div>
+    <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 p-4 sticky top-0 z-50">
+        <div class="flex justify-between items-center max-w-4xl mx-auto">
+            <span class="text-xs font-bold tracking-[0.2em] text-slate-400 uppercase">System Intelligence</span>
+            <div class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
         </div>
+    </header>
 
-        <div id="box-giro" class="giro-info" style="display:none">
-            <div>
-                <p style="font-size:9px; opacity:0.6; font-weight:800; text-transform:uppercase">Giro Total</p>
-                <p style="font-size:13px; font-weight:700"><span id="txt-giro">0</span> KM Ida/Volta</p>
-            </div>
-            <i class="fa-solid fa-route" style="font-size:18px; color:var(--brand-accent)"></i>
-        </div>
-
-        <div id="lista-precos"></div>
-    </section>
-
-    <section id="view-mapa" class="view" style="height:100%; position:relative;">
-        <div id="map-view" style="height:400px; border-radius:16px;"></div>
-    </section>
-    <section id="view-ordem" class="view"></section>
-</main>
-
-<nav class="nav-bottom">
-    <a href="#" class="nav-item active" onclick="App.router('tabela', this)">
-        <i class="fa-solid fa-chart-line"></i><span>TABELA</span>
-    </a>
-    <a href="#" class="nav-item" onclick="App.router('mapa', this)">
-        <i class="fa-solid fa-map-location-dot"></i><span>MAPA</span>
-    </a>
-    <a href="#" class="nav-item" onclick="App.router('ordem', this)">
-        <i class="fa-solid fa-receipt"></i><span>ORDEM</span>
-    </a>
-</nav>
-
-<script>
-const App = {
-    data: null,
-    init: function() {
-        const script = document.createElement('script');
-        script.src = 'https://script.google.com/macros/s/AKfycbx8wr0xEwFVEvBRaEkcHu_2TFwH_KN8zFcoD4x2023PzqqucGFUhz2rxfOXfdIe7B_w/exec?callback=App.setup';
-        document.body.appendChild(script);
+    <main class="flex-grow overflow-hidden">
         
-        this.map = L.map('map-view', {zoomControl: false}).setView([-16.68, -49.25], 5);
-        L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}').addTo(this.map);
-    },
-    setup: function(d) {
-        this.data = d;
-        const sel = document.getElementById('sel-cidade');
-        let h = '<option value="">SELECIONE O DESTINO...</option>';
-        d.cidades.filter(c => c[0]).sort((a,b)=>a[0].localeCompare(b[0])).forEach((c, i) => {
-            h += `<option value="${i}">${c[0]} (${c[1]} KM)</option>`;
-        });
-        sel.innerHTML = h;
-    },
-    handleCidade: function(idx) {
-        if(!idx) {
-            this.clearResults();
-            return;
+        <section id="aba1" class="tab-content active">
+            <iframe src="aba1.html"></iframe>
+        </section>
+
+        <section id="aba2" class="tab-content">
+            <iframe src="aba2.html"></iframe>
+        </section>
+
+        <section id="aba3" class="tab-content">
+            <iframe src="aba3.html"></iframe>
+        </section>
+
+    </main>
+
+    <nav class="bg-white/90 backdrop-blur-lg border-t border-slate-200 flex justify-around items-center h-20 pb-4 shadow-[0_-5px_15px_rgba(0,0,0,0.05)]">
+        <button onclick="openTab('aba1', this)" class="nav-button active flex flex-col items-center justify-center w-full h-full text-slate-400 transition-all">
+            <i class="fa-solid fa-rocket text-xl mb-1"></i>
+            <span class="text-[10px] font-medium uppercase tracking-widest">Dashboard</span>
+        </button>
+        
+        <button onclick="openTab('aba2', this)" class="nav-button flex flex-col items-center justify-center w-full h-full text-slate-400 transition-all">
+            <i class="fa-solid fa-microchip text-xl mb-1"></i>
+            <span class="text-[10px] font-medium uppercase tracking-widest">Dados</span>
+        </button>
+        
+        <button onclick="openTab('aba3', this)" class="nav-button flex flex-col items-center justify-center w-full h-full text-slate-400 transition-all">
+            <i class="fa-solid fa-user-shield text-xl mb-1"></i>
+            <span class="text-[10px] font-medium uppercase tracking-widest">Perfil</span>
+        </button>
+    </nav>
+
+    <script>
+        function openTab(tabId, btn) {
+            // Esconde todas as abas
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            // Remove destaque dos botões
+            document.querySelectorAll('.nav-button').forEach(b => b.classList.remove('active'));
+            
+            // Mostra a selecionada
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
         }
-        document.getElementById('inp-km').value = "";
-        const row = this.data.cidades[idx];
-        
-        // CORREÇÃO: Tratamento rigoroso do KM da planilha para garantir o cálculo X2
-        let kmExtraido = row[1];
-        if (typeof kmExtraido === 'string') {
-            kmExtraido = parseFloat(kmExtraido.replace(/\./g, '').replace(',', '.'));
-        } else {
-            kmExtraido = parseFloat(kmExtraido);
-        }
-        
-        this.render(kmExtraido, row);
-    },
-    handleKm: function(km) {
-        if(!km || km <= 0) {
-            this.clearResults();
-            return;
-        }
-        document.getElementById('sel-cidade').value = "";
-        const v = parseFloat(km);
-        const row = this.data.cidades.reduce((p, c) => {
-            let kmC = typeof c[1] === 'string' ? parseFloat(c[1].replace(/\./g, '').replace(',', '.')) : parseFloat(c[1]);
-            let kmP = typeof p[1] === 'string' ? parseFloat(p[1].replace(/\./g, '').replace(',', '.')) : parseFloat(p[1]);
-            return Math.abs(kmC - v) < Math.abs(kmP - v) ? c : p;
-        });
-        this.render(v, row);
-    },
-    clearResults: function() {
-        document.getElementById('lista-precos').innerHTML = "";
-        document.getElementById('box-giro').style.display = "none";
-    },
-    router: function(id, el) {
-        document.querySelectorAll('.view, .nav-item').forEach(x => x.classList.remove('active'));
-        document.getElementById('view-' + id).classList.add('active');
-        el.classList.add('active');
-        if(id === 'mapa') setTimeout(() => this.map.invalidateSize(), 300);
-    },
-    render: function(kmIda, row) {
-        // Regra Central: Giro Total = KM Ida X 2
-        const kmTotal = kmIda * 2; 
-        document.getElementById('box-giro').style.display = 'flex';
-        document.getElementById('txt-giro').innerText = kmTotal.toLocaleString('pt-BR');
-        
-        const veics = [
-            {n:'Toco', e:2, col:2, cap:10000}, {n:'Truck', e:3, col:3, cap:15000}, 
-            {n:'Bitruck', e:4, col:4, cap:20000}, {n:'Carreta', e:5, col:5, cap:30000}
-        ];
-        let h = '';
-        veics.forEach(v => {
-            const c = this.data.antt[v.e];
-            const vMin = (kmIda * c.ccd + c.cc) + (kmIda * c.ccd * 0.92);
-            let pP = typeof row[v.col] === 'string' ? parseFloat(row[v.col].replace(/\./g,'').replace(',','.')) : row[v.col];
-            const vLitro = pP / v.cap;
-            const isOk = pP >= vMin;
-
-            h += `
-            <div class="frete-card">
-                <div class="veiculo-header">
-                    <span class="veiculo-tag">${v.n}</span>
-                    <span class="badge-lei ${isOk?'badge-ok':'badge-warn'}">
-                        ${isOk?'OK':'ABAIXO DA LEI'}
-                    </span>
-                </div>
-                <span class="valor-main">R$ ${pP.toLocaleString('pt-BR',{minimumFractionDigits:2})}</span>
-                <div class="valor-litro-badge">
-                    <i class="fa-solid fa-gas-pump" style="font-size:11px"></i>
-                    R$ ${vLitro.toLocaleString('pt-BR',{minimumFractionDigits:4})} /L
-                </div>
-                <div class="antt-status">
-                    <span style="color:var(--text-muted)">Piso ANTT</span>
-                    <span style="color:var(--brand-primary)">R$ ${vMin.toLocaleString('pt-BR',{minimumFractionDigits:2})}</span>
-                </div>
-            </div>`;
-        });
-        document.getElementById('lista-precos').innerHTML = h;
-    }
-};
-window.onload = () => App.init();
-</script>
+    </script>
 </body>
 </html>
