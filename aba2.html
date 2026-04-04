@@ -3,95 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Logística Master Pro - Mobile</title>
+    <title>Logística Rodoviária Pro - Foco Asfalto</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
-        :root { --primary: #1a237e; --google-blue: #1a73e8; --success: #2e7d32; --danger: #d32f2f; }
+        :root { --primary: #0d47a1; --google-blue: #1a73e8; --success: #2e7d32; --danger: #d32f2f; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; background: #f0f2f5; overflow: hidden; }
         
-        /* Layout Mobile First */
-        .sidebar { width: 100%; max-width: 450px; background: white; padding: 12px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); overflow-y: auto; z-index: 1000; flex-shrink: 0; height: 50vh; }
+        .sidebar { width: 100%; max-width: 450px; background: white; padding: 10px; box-shadow: 2px 0 10px rgba(0,0,0,0.1); overflow-y: auto; z-index: 1000; flex-shrink: 0; height: 50vh; }
         #map { flex-grow: 1; width: 100%; height: 50vh; z-index: 1; }
 
         @media (min-width: 768px) {
             body { flex-direction: row; }
-            .sidebar { height: 100vh; width: 400px; }
+            .sidebar { height: 100vh; width: 380px; }
             #map { height: 100vh; }
         }
 
-        .section { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; margin-bottom: 10px; position: relative; }
-        .title { font-size: 0.7rem; font-weight: 800; color: #555; text-transform: uppercase; margin-bottom: 8px; border-bottom: 1px solid #eee; display: block; }
+        .section { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+        .title { font-size: 0.65rem; font-weight: 800; color: #555; text-transform: uppercase; margin-bottom: 5px; border-bottom: 1px solid #eee; display: block; }
 
-        .input-std { width: 100%; height: 40px; border: 1px solid #ccc; border-radius: 6px; padding: 0 10px; box-sizing: border-box; font-size: 14px; margin-bottom: 5px; font-weight: 600; }
+        .input-std { width: 100%; height: 36px; border: 1px solid #ccc; border-radius: 6px; padding: 0 8px; box-sizing: border-box; font-size: 13px; margin-bottom: 4px; font-weight: 600; }
         
-        #sugestoes { position: absolute; width: calc(100% - 20px); background: white; border: 1px solid #ccc; border-radius: 0 0 6px 6px; max-height: 180px; overflow-y: auto; display: none; z-index: 5000; box-shadow: 0 8px 16px rgba(0,0,0,0.2); }
-        .sugestao-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 13px; }
+        #sugestoes { position: absolute; width: calc(100% - 20px); background: white; border: 1px solid #ccc; border-radius: 0 0 6px 6px; max-height: 140px; overflow-y: auto; display: none; z-index: 5000; }
+        .sugestao-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 12px; }
 
-        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
-        .route-type { display: flex; background: #f0f0f0; border-radius: 6px; padding: 3px; margin: 8px 0; }
-        .route-option { flex: 1; text-align: center; padding: 8px; font-size: 11px; font-weight: bold; cursor: pointer; border-radius: 4px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
+        
+        .route-type { display: flex; background: #f0f0f0; border-radius: 6px; padding: 3px; margin: 5px 0; }
+        .route-option { flex: 1; text-align: center; padding: 6px; font-size: 10px; font-weight: bold; cursor: pointer; border-radius: 4px; }
         .route-option.active { background: var(--primary); color: white; }
 
-        .btn { width: 100%; height: 44px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; }
-        .bg-calc { background: var(--success); color: white; font-size: 14px; }
+        .btn { width: 100%; height: 38px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; font-size: 11px; }
+        .bg-calc { background: var(--success); color: white; font-size: 13px; height: 48px; margin-top: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+        .bg-blue { background: var(--google-blue); color: white; }
         
-        .ponto-card { background: #f8f9fa; border: 1px solid #ddd; padding: 8px; border-radius: 6px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; border-left: 4px solid var(--google-blue); }
+        .ponto-card { background: #f8f9fa; border: 1px solid #ddd; padding: 6px; border-radius: 6px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; border-left: 4px solid var(--primary); }
 
-        /* Painel Financeiro */
-        .dre-box { background: #121212; color: #fff; border-radius: 12px; padding: 15px; margin-top: 10px; }
-        .dre-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #2a2a2a; font-size: 12px; align-items: center; }
-        .val-destaque { font-size: 20px; color: #00e676; font-weight: 900; }
-        .perc-tag { font-size: 10px; background: #333; padding: 2px 5px; border-radius: 4px; color: #aaa; margin-left: 5px; }
+        .dre-box { background: #121212; color: #fff; border-radius: 10px; padding: 12px; margin-top: 5px; }
+        .dre-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #2a2a2a; font-size: 11px; }
+        .val-destaque { font-size: 18px; color: #00e676; font-weight: 900; }
+        .perc-tag { font-size: 9px; background: #333; padding: 1px 4px; border-radius: 3px; color: #aaa; margin-left: 4px; }
     </style>
 </head>
 <body>
 
 <div class="sidebar">
-    <div style="text-align:center;"><h3 style="color: var(--primary); margin: 5px 0;">MASTER LOGÍSTICA PRO</h3></div>
+    <div style="text-align:center;"><h3 style="color: var(--primary); margin: 5px 0;">RODOVIA & ASFALTO MASTER</h3></div>
 
     <div class="section">
-        <span class="title">📍 Rotas (Digite ou Toque no Mapa)</span>
+        <span class="title">📍 Destinos (Priorizando Rodovias)</span>
         <input type="text" id="busca" class="input-std" placeholder="🔍 Digite a cidade..." oninput="autoBusca(this.value)">
         <div id="sugestoes"></div>
-        <div id="listaAtiva" style="margin-top: 8px;"></div>
+        
+        <div class="grid-2">
+            <input type="text" id="inputCoord" class="input-std" placeholder="Colar Coordenada">
+            <input type="text" id="inputPlus" class="input-std" placeholder="Plus Code">
+        </div>
+        <div class="grid-3">
+            <button class="btn bg-blue" onclick="addPorCoord()">+ Coord</button>
+            <button class="btn bg-blue" onclick="addPorPlus()">+ Plus</button>
+            <button class="btn" style="background:#607d8b; color:white;" onclick="minhaPosicao()">📍 GPS</button>
+        </div>
+        <div id="listaAtiva" style="margin-top: 5px;"></div>
     </div>
 
     <div class="section">
-        <span class="title">⚙️ Custos e Médias</span>
+        <span class="title">📊 Parâmetros do Frete</span>
         <div class="route-type">
             <div id="optIda" class="route-option active" onclick="setTipoRota('ida')">SÓ IDA</div>
             <div id="optIdaVolta" class="route-option" onclick="setTipoRota('idavolta')">IDA E VOLTA</div>
         </div>
         <div class="grid-3">
-            <div><label style="font-size:9px;">VALOR KM</label><input type="number" id="valorKm" class="input-std" value="5.70"></div>
-            <div><label style="font-size:9px;">DIESEL</label><input type="number" id="diesel" class="input-std" value="7.20"></div>
-            <div><label style="font-size:9px;">PEDÁGIO</label><input type="number" id="pedagioMan" class="input-std" value="0.00"></div>
-            <div><label style="font-size:9px;">MÉDIA C.</label><input type="number" id="mediaC" class="input-std" value="3.5"></div>
-            <div><label style="font-size:9px;">MÉDIA V.</label><input type="number" id="mediaV" class="input-std" value="3.7"></div>
-            <div><label style="font-size:9px;">COMIS. %</label><input type="number" id="comissao" class="input-std" value="17"></div>
+            <div><label style="font-size:8px;">VALOR KM</label><input type="number" id="valorKm" class="input-std" value="5.70"></div>
+            <div><label style="font-size:8px;">DIESEL</label><input type="number" id="diesel" class="input-std" value="7.20"></div>
+            <div><label style="font-size:8px;">PEDÁGIO</label><input type="number" id="pedagioMan" class="input-std" value="0.00"></div>
+            <div><label style="font-size:8px;">MÉDIA C.</label><input type="number" id="mediaC" class="input-std" value="3.5"></div>
+            <div><label style="font-size:8px;">MÉDIA V.</label><input type="number" id="mediaV" class="input-std" value="3.7"></div>
+            <div><label style="font-size:8px;">COMIS. %</label><input type="number" id="comissao" class="input-std" value="17"></div>
         </div>
-        <button class="btn bg-calc" id="btnCalcular" onclick="calcularRotaORS()">🚀 CALCULAR FRETE PROFISSIONAL</button>
-        <button class="btn" style="background:none; color:var(--danger); border:1px solid var(--danger); height: 35px;" onclick="limparTudo()">🗑️ LIMPAR</button>
+        <button class="btn bg-calc" id="btnCalcular" onclick="calcularRotaORS()">🚀 CALCULAR VIA RODOVIAS PRINCIPAIS</button>
+        <button class="btn" style="background:none; color:var(--danger); border:1px solid var(--danger); height: 25px;" onclick="limparTudo()">🗑️ RESETAR</button>
     </div>
 
     <div id="resultadoDRE" class="dre-box" style="display:none;">
         <div class="dre-row"><span>KM Ida:</span><span id="resKmIda">0 km</span></div>
-        <div class="dre-row"><span>KM Total:</span><span id="resKmTotal">0 km</span></div>
-        <div class="dre-row" style="background: #1a1a1a; padding: 10px; border-radius: 6px; margin: 5px 0;">
+        <div class="dre-row"><span>KM Total (Giro):</span><span id="resKmTotal">0 km</span></div>
+        <div class="dre-row" style="background: #1a1a1a; padding: 8px; border-radius: 6px; margin: 4px 0;">
             <span style="font-weight:bold; color:#81c784;">FRETE BRUTO:</span>
             <span id="resBruto" class="val-destaque">R$ 0,00</span>
         </div>
         <div class="dre-row"><span>Diesel:</span><span><span id="resDiesel">R$ 0</span><span class="perc-tag" id="pDiesel">0%</span></span></div>
         <div class="dre-row"><span>Comissão:</span><span><span id="resComissao">R$ 0</span><span class="perc-tag" id="pComissao">0%</span></span></div>
-        <div class="dre-row"><span>Pedágio:</span><span><span id="resPedagio">R$ 0</span><span class="perc-tag" id="pPedagio">0%</span></span></div>
-        <div class="dre-row" style="color: #ff8a80;"><span>TOTAL CUSTOS:</span><span><span id="resTotalCustos">R$ 0</span><span class="perc-tag" id="pCustos">0%</span></span></div>
-        <div class="dre-row" style="margin-top:10px; border-top:1px solid #444; padding-top:10px;">
+        <div class="dre-row"><span>Custo Pedágio:</span><span><span id="resPedagio">R$ 0</span><span class="perc-tag" id="pPedagio">0%</span></span></div>
+        <div class="dre-row" style="color: #ff8a80;"><span>DESPESA TOTAL:</span><span><span id="resTotalCustos">R$ 0</span><span class="perc-tag" id="pCustos">0%</span></span></div>
+        <div class="dre-row" style="margin-top:8px; border-top:1px solid #444; padding-top:8px;">
             <span style="font-weight:bold; color:#00e676;">SALDO FRETE (LUCRO):</span>
-            <span><b id="resLucro" style="color:#00e676; font-size:18px;">R$ 0</b><span class="perc-tag" id="pLucro" style="color:#00e676;">0%</span></span>
+            <span><b id="resLucro" style="color:#00e676; font-size:16px;">R$ 0</b><span class="perc-tag" id="pLucro" style="color:#00e676;">0%</span></span>
         </div>
-        <button class="btn" style="background:#25d366; color:white; margin-top:10px;" onclick="enviarZap()">📱 ENVIAR RESUMO WHATSAPP</button>
+        <button class="btn" style="background:#25d366; color:white; margin-top:8px;" onclick="enviarZap()">📱 ENVIAR RESUMO ASFALTO</button>
     </div>
 </div>
 
@@ -100,26 +111,14 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    // CHAVE API ORS
     const API_KEY_ORS = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImIzOTdjNjBlOTdkYTk4ZWNiYTg3MTBiZmYyZWZjNTZmN2E2YzY0NTgyZmE1YTk5ZDdjOTZkNTc5IiwiaCI6Im11cm11cjY0In0=';
 
-    // CONFIGURAÇÃO DAS CAMADAS GOOGLE
-    var googleRoads = L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}');
     var googleHybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}');
-    var googleTerrain = L.tileLayer('https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}');
+    var googleRoads = L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}'); 
 
-    var map = L.map('map', {
-        center: [-16.68, -49.25],
-        zoom: 5,
-        layers: [googleRoads] // Camada padrão
-    });
+    var map = L.map('map', { center: [-16.68, -49.25], zoom: 5, layers: [googleRoads] });
 
-    // Controle de Camadas
-    var baseMaps = {
-        "Google Mapas": googleRoads,
-        "Google Satélite": googleHybrid,
-        "Google Terreno": googleTerrain
-    };
+    var baseMaps = { "Mapa Rodoviário": googleRoads, "Satélite (Híbrido)": googleHybrid };
     L.control.layers(baseMaps).addTo(map);
 
     var pontos = [];
@@ -127,19 +126,20 @@
     var linhaRota = null;
     var tipoRota = 'ida';
 
-    // FUNÇÃO: Clicar no mapa e adicionar ponto
-    map.on('click', function(e) {
-        adicionar(e.latlng.lat, e.latlng.lng, `Ponto no Mapa (${e.latlng.lat.toFixed(3)})`);
+    map.on('click', e => {
+        let nome = prompt("Identificar ponto no asfalto/fazenda:", "Ponto de Rota");
+        if(nome) adicionar(e.latlng.lat, e.latlng.lng, nome);
     });
 
-    // FUNÇÃO: Busca Automática enquanto digita
+    function minhaPosicao() {
+        map.locate({setView: true, maxZoom: 14});
+        map.on('locationfound', e => adicionar(e.latlng.lat, e.latlng.lng, "Minha Localização"));
+    }
+
     let timeoutBusca;
     function autoBusca(val) {
         clearTimeout(timeoutBusca);
-        if(val.length < 3) {
-            document.getElementById('sugestoes').style.display = 'none';
-            return;
-        }
+        if(val.length < 3) { document.getElementById('sugestoes').style.display = 'none'; return; }
         timeoutBusca = setTimeout(() => {
             fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val)}&countrycodes=br&limit=5`)
             .then(r => r.json()).then(data => {
@@ -153,6 +153,26 @@
         }, 500);
     }
 
+    function addPorCoord() {
+        let v = document.getElementById('inputCoord').value;
+        let c = v.match(/-?\d+\.\d+/g); 
+        if(c && c.length >= 2) {
+            adicionar(c[0], c[1], "Ponto Geográfico");
+            document.getElementById('inputCoord').value = '';
+        } else { alert("Coordenada não reconhecida."); }
+    }
+
+    function addPorPlus() {
+        let code = document.getElementById('inputPlus').value;
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(code)}`)
+        .then(r => r.json()).then(data => {
+            if(data[0]) {
+                adicionar(data[0].lat, data[0].lon, "PlusCode: " + code);
+                document.getElementById('inputPlus').value = '';
+            } else { alert("Código não encontrado."); }
+        });
+    }
+
     function setTipoRota(t) {
         tipoRota = t;
         document.getElementById('optIda').classList.toggle('active', t === 'ida');
@@ -160,7 +180,7 @@
     }
 
     function adicionar(lat, lon, nome) {
-        pontos.push({ lat: lat, lon: lon, nome: nome });
+        pontos.push({ lat: parseFloat(lat), lon: parseFloat(lon), nome: nome });
         document.getElementById('sugestoes').style.display = 'none';
         document.getElementById('busca').value = '';
         renderLista();
@@ -171,38 +191,41 @@
         marcadores = [];
         let html = '';
         pontos.forEach((p, i) => {
-            html += `<div class="ponto-card"><span><b>${i==0?'🏁':'📍'}</b> ${p.nome}</span><button onclick="remover(${i})" style="color:red; border:none; background:none; font-weight:bold;">✕</button></div>`;
-            marcadores.push(L.marker([p.lat, p.lon]).addTo(map));
+            html += `<div class="ponto-card"><span><b>${i==0?'🚚':'🏁'}</b> ${p.nome}</span><button onclick="remover(${i})" style="color:red; border:none; background:none; font-weight:bold; font-size:16px;">✕</button></div>`;
+            marcadores.push(L.marker([p.lat, p.lon]).addTo(map).bindPopup(p.nome));
         });
         document.getElementById('listaAtiva').innerHTML = html;
     }
 
     async function calcularRotaORS() {
-        if(pontos.length < 2) return alert("Toque no mapa ou digite cidades!");
+        if(pontos.length < 2) return alert("Defina Origem e Destino!");
         const btn = document.getElementById('btnCalcular');
-        btn.innerText = "🔄 PROCESSANDO...";
+        btn.innerText = "🔄 BUSCANDO ASFALTO...";
         btn.disabled = true;
 
-        let coords = pontos.map(p => [parseFloat(p.lon), parseFloat(p.lat)]);
+        let coords = pontos.map(p => [p.lon, p.lat]);
         if(tipoRota === 'idavolta') coords.push(coords[0]);
 
         try {
             const response = await fetch('https://api.openrouteservice.org/v2/directions/driving-hgv/geojson', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': API_KEY_ORS },
-                body: JSON.stringify({ coordinates: coords })
+                body: JSON.stringify({ 
+                    coordinates: coords, 
+                    preference: "fastest" // Otimiza para as rodovias mais rápidas/principais
+                })
             });
             const data = await response.json();
             const kmTotal = data.features[0].properties.summary.distance / 1000;
 
             if(linhaRota) map.removeLayer(linhaRota);
-            linhaRota = L.geoJSON(data, { style: { color: '#00e676', weight: 5 } }).addTo(map);
+            linhaRota = L.geoJSON(data, { style: { color: '#0d47a1', weight: 6, opacity: 0.9 } }).addTo(map);
             map.fitBounds(linhaRota.getBounds());
             exibirPainel(kmTotal);
         } catch (e) {
-            alert("Erro na rota. Verifique sua conexão ou chave API.");
+            alert("Erro ao traçar rota. Certifique-se que o ponto de fazenda tenha conexão com estradas.");
         } finally {
-            btn.innerText = "🚀 CALCULAR FRETE PROFISSIONAL";
+            btn.innerText = "🚀 CALCULAR VIA RODOVIAS PRINCIPAIS";
             btn.disabled = false;
         }
     }
@@ -224,25 +247,19 @@
         let totalCustos = custoDiesel + valorComissao + pedagio;
         let lucro = bruto - totalCustos;
 
-        // Função para calcular % sobre o bruto
         const calcPerc = (val) => bruto > 0 ? ((val/bruto)*100).toFixed(1) + '%' : '0%';
 
         document.getElementById('resKmIda').innerText = kmIda.toFixed(1) + " km";
         document.getElementById('resKmTotal').innerText = giroTotal.toFixed(1) + " km";
         document.getElementById('resBruto').innerText = "R$ " + bruto.toLocaleString('pt-BR', {minimumFractionDigits:2});
-        
         document.getElementById('resDiesel').innerText = "R$ " + custoDiesel.toLocaleString('pt-BR', {minimumFractionDigits:2});
         document.getElementById('pDiesel').innerText = calcPerc(custoDiesel);
-
         document.getElementById('resComissao').innerText = "R$ " + valorComissao.toLocaleString('pt-BR', {minimumFractionDigits:2});
         document.getElementById('pComissao').innerText = calcPerc(valorComissao);
-
         document.getElementById('resPedagio').innerText = "R$ " + pedagio.toLocaleString('pt-BR', {minimumFractionDigits:2});
         document.getElementById('pPedagio').innerText = calcPerc(pedagio);
-
         document.getElementById('resTotalCustos').innerText = "R$ " + totalCustos.toLocaleString('pt-BR', {minimumFractionDigits:2});
         document.getElementById('pCustos').innerText = calcPerc(totalCustos);
-
         document.getElementById('resLucro').innerText = "R$ " + lucro.toLocaleString('pt-BR', {minimumFractionDigits:2});
         document.getElementById('pLucro').innerText = calcPerc(lucro);
 
@@ -251,19 +268,16 @@
 
     function remover(i) { pontos.splice(i, 1); renderLista(); }
     function limparTudo() { 
-        pontos = []; 
-        renderLista(); 
+        pontos = []; renderLista(); 
         if(linhaRota) map.removeLayer(linhaRota); 
         document.getElementById('resultadoDRE').style.display='none'; 
-        document.getElementById('busca').value = '';
     }
 
     function enviarZap() {
         let bruto = document.getElementById('resBruto').innerText;
-        let lucro = document.getElementById('resLucro').innerText;
-        let margem = document.getElementById('pLucro').innerText;
         let km = document.getElementById('resKmTotal').innerText;
-        let msg = `*RESUMO FRETE PRO*%0A🛣️ Giro: ${km}%0A💰 Bruto: ${bruto}%0A✅ Saldo: ${lucro} (Margem: ${margem})`;
+        let lucro = document.getElementById('resLucro').innerText;
+        let msg = `*FRETE RODOVIÁRIO MASTER*%0A🛣️ Rota de Asfalto: ${km}%0A💰 Bruto: ${bruto}%0A✅ Saldo Livre: ${lucro}`;
         window.open(`https://api.whatsapp.com/send?text=${msg}`);
     }
 </script>
