@@ -41,7 +41,7 @@
         <span class="title">📍 Pontos de Rota</span>
         <div id="listaAtiva"></div>
         <div style="position:relative;">
-            <input type="text" id="inputBusca" class="input-std" placeholder="Cidade ou Coordenada..." oninput="autoBusca(this.value)">
+            <input type="text" id="inputBusca" class="input-std" placeholder="Cidade ou Lat, Lon..." oninput="autoBusca(this.value)">
             <div id="sugestoes"></div>
         </div>
     </div>
@@ -53,11 +53,11 @@
             <div id="optIdaVolta" class="route-option" onclick="setTipoRota('idavolta')">IDA E VOLTA</div>
         </div>
         <div class="grid-3">
-            <div><label style="font-size:8px;">VALOR KM</label><input type="number" id="valorKm" class="input-std" value="6.0"></div>
+            <div><label style="font-size:8px;">VALOR KM</label><input type="number" id="valorKm" class="input-std" value="5.70"></div>
             <div><label style="font-size:8px;">DIESEL</label><input type="number" id="diesel" class="input-std" value="7.20"></div>
             <div><label style="font-size:8px;">PEDÁGIO</label><input type="number" id="pedagioMan" class="input-std" value="0.00"></div>
             <div><label style="font-size:8px;">MÉDIA C.</label><input type="number" id="mediaC" class="input-std" value="3.5"></div>
-            <div><label style="font-size:8px;">MÉDIA V.</label><input type="number" id="mediaV" class="input-std" value="3.5"></div>
+            <div><label style="font-size:8px;">MÉDIA V.</label><input type="number" id="mediaV" class="input-std" value="3.7"></div>
             <div><label style="font-size:8px;">COMIS. %</label><input type="number" id="comissao" class="input-std" value="17"></div>
         </div>
         <button class="btn bg-calc" id="btnCalcular" onclick="calcularRotaORS()">🚀 CALCULAR ROTA</button>
@@ -102,7 +102,17 @@
     function autoBusca(val) {
         clearTimeout(timerBusca);
         const divSug = document.getElementById('sugestoes');
+        
+        // CORREÇÃO: Verifica se é coordenada ANTES de buscar cidade
+        let coords = val.split(',');
+        if(coords.length === 2 && !isNaN(parseFloat(coords[0])) && !isNaN(parseFloat(coords[1]))) {
+            divSug.style.display = 'none';
+            // Se o usuário apertar Enter ou parar de digitar, ele pode adicionar o ponto exato
+            return;
+        }
+
         if(val.length < 3) { divSug.style.display = 'none'; return; }
+        
         timerBusca = setTimeout(() => {
             fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${val}&countrycodes=br&limit=5`)
             .then(r => r.json()).then(data => {
@@ -115,6 +125,17 @@
             });
         }, 400);
     }
+
+    // Permitir adicionar via Enter para coordenadas exatas
+    document.getElementById('inputBusca').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            let val = this.value;
+            let coords = val.split(',');
+            if(coords.length === 2 && !isNaN(parseFloat(coords[0])) && !isNaN(parseFloat(coords[1]))) {
+                adicionar(coords[0], coords[1], "Coord. Exata");
+            }
+        }
+    });
 
     function adicionar(lat, lon, nomeManual = null) {
         let letra = String.fromCharCode(65 + pontos.length);
@@ -174,11 +195,7 @@
 
         let kmIda = (tipoRota === 'idavolta') ? kmTotal/2 : kmTotal;
         let giroTotal = (tipoRota === 'idavolta') ? kmTotal : kmIda * 2;
-        
-        // CÁLCULO BRUTO ORIGINAL
         let brutoReal = (tipoRota === 'ida' ? kmIda : giroTotal) * vKm;
-        
-        // REGRA DE ARREDONDAMENTO PARA CIMA (ESCALA DE 100)
         let brutoArredondado = Math.ceil(brutoReal / 100) * 100;
         
         let dieselCusto = ((kmIda/mC) + (kmIda/mV)) * dVal;
