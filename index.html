@@ -13,7 +13,6 @@
         body { 
             font-family: 'Inter', sans-serif; 
             background-color: #0a0f1d;
-            /* svh = Unidade que respeita as barras do navegador mobile */
             height: 100svh; 
             display: flex;
             flex-direction: column;
@@ -28,34 +27,34 @@
             width: 100%;
             position: relative;
             background: #0a0f1d;
+            display: flex;
+            justify-content: center;
+            overflow: hidden;
         }
 
         .tab-content { 
             display: none; 
             width: 100%;
             height: 100%;
+            max-width: 100%;
         }
         
         .tab-content.active { display: block; }
         
         iframe { width: 100%; height: 100%; border: none; }
 
-        /* NAV FLUTUANTE - Técnica para nunca sumir */
+        /* NAV FLUTUANTE - Otimizado para Mobile e Notebook */
         nav {
             background: #161e2e;
             border-top: 1px solid rgba(255,255,255,0.1);
             display: flex;
             justify-content: space-around;
             align-items: center;
-            
-            /* Altura fixa robusta */
-            height: 85px; 
-            
-            /* Garante que o conteúdo não cole no fim da tela física */
-            padding-bottom: max(15px, env(safe-area-inset-bottom));
-            
+            height: 70px; /* Reduzido de 85px para ficar mais elegante */
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
             width: 100%;
             flex-shrink: 0; /* Impede o menu de espremer */
+            z-index: 9999;
         }
 
         .nav-link {
@@ -69,10 +68,11 @@
             border: none;
             color: #94a3b8;
             transition: 0.2s;
+            cursor: pointer;
         }
 
-        .nav-link svg { width: 26px; height: 26px; fill: currentColor; }
-        .nav-link span { font-size: 11px; font-weight: 700; margin-top: 4px; text-transform: uppercase; }
+        .nav-link svg { width: 22px; height: 22px; fill: currentColor; }
+        .nav-link span { font-size: 10px; font-weight: 700; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
 
         .nav-link.active { 
             color: #f59e0b; 
@@ -80,19 +80,42 @@
         }
 
         header { flex-shrink: 0; }
+
+        /* Ajustes elegantes para telas de Notebook / Desktop */
+        @media (min-width: 768px) {
+            header .header-container {
+                max-width: 900px;
+                margin: 0 auto;
+            }
+            .tab-content {
+                max-width: 900px;
+                margin: 0 auto;
+            }
+            nav {
+                height: 60px;
+                max-width: 900px;
+                margin: 0 auto;
+                border-radius: 12px 12px 0 0;
+                border-left: 1px solid rgba(255,255,255,0.05);
+                border-right: 1px solid rgba(255,255,255,0.05);
+            }
+        }
     </style>
 </head>
 <body>
 
-    <header class="bg-[#161e2e] border-b border-white/5 p-4">
-        <div class="flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="bg-amber-500 p-2 rounded-lg">
-                    <svg viewBox="0 0 640 512" class="w-5 h-5 fill-[#0a0f1d]"><path d="M624 352h-16V243.9c0-12.7-5.1-24.9-14.1-33.9L494 110.1c-9-9-21.2-14.1-33.9-14.1H416V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48v320c0 26.5 21.5 48 48 48h16c0 53 43 96 96 96s96-43 96-96h128c0 53 43 96 96 96s96-43 96-96h48c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zM160 464c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm320 0c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm80-208H416V144h44.1l99.9 99.9V256z"/></svg>
+    <header class="bg-[#161e2e] border-b border-white/5 p-3 md:p-4">
+        <div class="header-container flex justify-between items-center w-full">
+            <div class="flex items-center gap-2.5">
+                <div class="bg-amber-500 p-1.5 rounded-lg shadow">
+                    <svg viewBox="0 0 640 512" class="w-4 h-4 fill-[#0a0f1d]"><path d="M624 352h-16V243.9c0-12.7-5.1-24.9-14.1-33.9L494 110.1c-9-9-21.2-14.1-33.9-14.1H416V48c0-26.5-21.5-48-48-48H48C21.5 0 0 21.5 0 48v320c0 26.5 21.5 48 48 48h16c0 53 43 96 96 96s96-43 96-96h128c0 53 43 96 96 96s96-43 96-96h48c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zM160 464c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm320 0c-26.5 0-48-21.5-48-48s21.5-48 48-48 48 21.5 48 48-21.5 48-48 48zm80-208H416V144h44.1l99.9 99.9V256z"/></svg>
                 </div>
-                <h1 class="text-white text-sm font-black italic uppercase">Sistema Prime</h1>
+                <h1 class="text-white text-xs md:text-sm font-black italic uppercase tracking-wider">Sistema Prime</h1>
             </div>
-            <div class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
+            <div class="flex items-center gap-1.5 bg-slate-800/60 px-2.5 py-1 rounded-full border border-slate-700/40">
+                <div class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></div>
+                <span class="text-[9px] font-bold text-slate-300 uppercase tracking-wider">Online</span>
+            </div>
         </div>
     </header>
 
